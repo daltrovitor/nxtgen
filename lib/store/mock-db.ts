@@ -354,4 +354,9 @@ class MockDatabase {
   }
 }
 
-export const mockDb = new MockDatabase();
+declare global {
+  var __nxtgenMockDb: MockDatabase | undefined;
+}
+
+export const mockDb = globalThis.__nxtgenMockDb || (globalThis.__nxtgenMockDb = new MockDatabase());
+

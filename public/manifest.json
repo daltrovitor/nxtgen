@@ -1,21 +1,24 @@
 {
-  "name": "NXTGEN - The Future Pays More",
+  "name": "NXTGEN — Super App Alpha & Z",
   "short_name": "NXTGEN",
-  "description": "Ecossistema de benefícios, fintech e comunidade para Gerações Alpha e Z",
+  "description": "The Future Pays More. O primeiro ecossistema de benefícios, experiências e fintech para as novas gerações.",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#0a0b10",
-  "theme_color": "#0a0b10",
+  "background_color": "#05070E",
+  "theme_color": "#05070E",
+  "orientation": "portrait",
   "icons": [
     {
       "src": "/icon-192.png",
       "sizes": "192x192",
-      "type": "image/png"
+      "type": "image/png",
+      "purpose": "any maskable"
     },
     {
       "src": "/icon-512.png",
       "sizes": "512x512",
-      "type": "image/png"
+      "type": "image/png",
+      "purpose": "any maskable"
     }
   ]
 }

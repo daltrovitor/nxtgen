@@ -7,6 +7,7 @@ const SignupSchema = z.object({
   fullName: z.string().min(2, "Nome completo é obrigatório"),
   email: z.string().email("E-mail corporativo ou pessoal válido"),
   password: z.string().min(6, "A senha deve ter no mínimo 6 caracteres"),
+  birthDate: z.string().optional(),
 });
 
 export async function POST(req: NextRequest) {
@@ -18,6 +19,23 @@ export async function POST(req: NextRequest) {
         { error: parseResult.error.errors[0].message },
         { status: 400 }
       );
+    }
+
+    // Regra Fundamental NXTGEN: Máximo 29 anos (Gerações Alpha e Z)
+    if (body.birthDate) {
+      const birth = new Date(body.birthDate);
+      const today = new Date();
+      let age = today.getFullYear() - birth.getFullYear();
+      const m = today.getMonth() - birth.getMonth();
+      if (m < 0 || (m === 0 && today.getDate() < birth.getDate())) {
+        age--;
+      }
+      if (age > 29) {
+        return NextResponse.json(
+          { error: "O ecossistema NXTGEN é exclusivo para jovens até 29 anos (Gerações Alpha e Z)." },
+          { status: 403 }
+        );
+      }
     }
 
     const fullName = sanitizeInput(parseResult.data.fullName);

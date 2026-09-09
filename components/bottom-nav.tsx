@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Home, Ticket, QrCode, ScanLine, User } from "lucide-react";
+import { Tag, Wallet, Ticket, TrendingUp, HeartHandshake, QrCode } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export function BottomNav() {
@@ -10,35 +10,45 @@ export function BottomNav() {
 
   const navItems = [
     {
-      label: "Manifesto",
-      href: "/",
-      icon: Home,
-    },
-    {
-      label: "NXT PASS",
+      label: "PASS",
       href: "/pass",
-      icon: Ticket,
-      highlight: true,
+      icon: Tag,
+      color: "#00f0ff",
     },
     {
-      label: "Meus Cupons",
+      label: "BANK",
+      href: "/bank",
+      icon: Wallet,
+      color: "#7928ca",
+    },
+    {
+      label: "LIVE",
+      href: "/live",
+      icon: Ticket,
+      color: "#ff0080",
+    },
+    {
+      label: "INVEST",
+      href: "/invest",
+      icon: TrendingUp,
+      color: "#10b981",
+    },
+    {
+      label: "NXT ME",
+      href: "/me",
+      icon: HeartHandshake,
+      color: "#ffb800",
+    },
+    {
+      label: "CUPONS",
       href: "/meus-cupons",
       icon: QrCode,
-    },
-    {
-      label: "Validador",
-      href: "/validador",
-      icon: ScanLine,
-    },
-    {
-      label: "Perfil",
-      href: "/perfil",
-      icon: User,
+      color: "#00f0ff",
     },
   ];
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-40 max-w-md mx-auto bg-[#08080a]/95 backdrop-blur-md border-t border-white/10 py-2 px-3 font-mono">
+    <nav className="fixed bottom-0 left-0 right-0 z-40 max-w-md mx-auto bg-[#08080a]/95 backdrop-blur-xl border-t border-white/10 py-1.5 px-2 font-mono">
       <div className="flex items-center justify-around">
         {navItems.map((item) => {
           const Icon = item.icon;
@@ -49,16 +59,24 @@ export function BottomNav() {
               key={item.label}
               href={item.href}
               className={cn(
-                "flex flex-col items-center py-1 px-2 transition-all relative",
+                "flex flex-col items-center py-1 px-1.5 transition-all relative active:scale-95",
                 isActive
                   ? "text-white font-bold"
                   : "text-gray-500 hover:text-gray-300"
               )}
             >
-              <Icon className={cn("w-4 h-4", isActive && "text-brand-cyan")} />
-              <span className="text-[9px] mt-1 tracking-tight uppercase">{item.label}</span>
+              <Icon 
+                className="w-4 h-4 transition-colors" 
+                style={{ color: isActive ? item.color : undefined }}
+              />
+              <span className="text-[8.5px] mt-0.5 tracking-tighter uppercase font-bold">
+                {item.label}
+              </span>
               {isActive && (
-                <div className="absolute -bottom-1 w-4 h-0.5 bg-brand-cyan" />
+                <div 
+                  className="absolute -bottom-1 w-3.5 h-0.5" 
+                  style={{ backgroundColor: item.color, boxShadow: `0 0 8px ${item.color}` }}
+                />
               )}
             </Link>
           );
