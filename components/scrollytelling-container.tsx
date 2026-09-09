@@ -4,7 +4,7 @@ import React, { useRef, useState, useEffect } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { motion, useScroll, useTransform, useSpring } from "framer-motion";
-import { Phone3D } from "@/components/phone-3d";
+import { Phone3DModel } from "@/components/phone-3d-model";
 import { useAuth } from "@/hooks/use-auth";
 import {
   ArrowRight,
@@ -73,13 +73,13 @@ export function ScrollytellingContainer() {
     [1, 1, 1.05, 1.05, 0.95]
   );
 
-  // Mobile clamped transforms: smooth vertical alignment, phone subtly scaled to 0.72, gentle Y offset
-  const rotateXMobile = useTransform(smoothProgress, [0, 1], [0, 0]);
-  const rotateYMobile = useTransform(smoothProgress, [0, 1], [0, 0]);
-  const rotateZMobile = useTransform(smoothProgress, [0, 1], [0, 0]);
+  // Mobile clamped transforms: phone scaled to 0.58 and positioned at top half so text fits below
+  const rotateXMobile = useTransform(smoothProgress, [0, 1], [6, 0]);
+  const rotateYMobile = useTransform(smoothProgress, [0, 0.5, 1], [-8, 8, 0]);
+  const rotateZMobile = useTransform(smoothProgress, [0, 1], [2, 0]);
   const xMobile = useTransform(smoothProgress, [0, 1], [0, 0]);
-  const yMobile = useTransform(smoothProgress, [0, 0.25, 0.55, 0.8, 1], [50, 40, 40, 40, 20]);
-  const scaleMobile = useTransform(smoothProgress, [0, 1], [0.72, 0.72]);
+  const yMobile = useTransform(smoothProgress, [0, 0.25, 0.55, 0.8, 1], [-175, -150, -150, -160, -190]);
+  const scaleMobile = useTransform(smoothProgress, [0, 1], [0.54, 0.54]);
 
   const rotateX = isMobile ? rotateXMobile : rotateXDesktop;
   const rotateY = isMobile ? rotateYMobile : rotateYDesktop;
@@ -158,20 +158,19 @@ export function ScrollytellingContainer() {
       <div className="sticky top-0 h-screen w-full flex items-center justify-center pointer-events-none z-20 overflow-hidden">
         <motion.div
           style={{
-            rotateX,
-            rotateY,
-            rotateZ,
             x,
             y,
             scale,
-            transformStyle: "preserve-3d",
           }}
           className="pointer-events-auto transition-shadow"
         >
-          <Phone3D
+          <Phone3DModel
             highlightBenefits={currentSection === 1}
             animateXp={currentSection >= 2}
             glowIntensity={currentSection === 1 ? 1.4 : currentSection === 2 ? 1.6 : 1}
+            rotationX={rotateX}
+            rotationY={rotateY}
+            rotationZ={rotateZ}
           />
         </motion.div>
       </div>
@@ -184,8 +183,8 @@ export function ScrollytellingContainer() {
         {/* -----------------------------------------------------------------------
             SECTION 1: HERO (Scroll 0% - 25%)
         ----------------------------------------------------------------------- */}
-        <section className="min-h-screen flex flex-col justify-center px-4 sm:px-12 max-w-7xl mx-auto py-20 pointer-events-none">
-          <div className="max-w-xl space-y-6 pointer-events-auto p-6 sm:p-0 rounded-3xl sm:rounded-none bg-[#08090C]/85 sm:bg-transparent backdrop-blur-xl sm:backdrop-blur-none border border-white/10 sm:border-none shadow-2xl sm:shadow-none">
+        <section className="min-h-screen flex flex-col justify-end pb-12 sm:justify-center px-4 sm:px-12 max-w-7xl mx-auto py-20 pointer-events-none">
+          <div className="max-w-xl space-y-6 pointer-events-auto p-6 sm:p-0 rounded-3xl sm:rounded-none bg-[#08090C]/90 sm:bg-transparent backdrop-blur-xl sm:backdrop-blur-none border border-white/10 sm:border-none shadow-2xl sm:shadow-none">
             
             {/* Tagline Sem Balão */}
             <p className="text-xs font-mono uppercase tracking-[0.25em] text-purple-400 font-semibold">
@@ -237,9 +236,9 @@ export function ScrollytellingContainer() {
         ----------------------------------------------------------------------- */}
         <section
           id="secao-pass"
-          className="min-h-screen flex flex-col justify-center px-4 sm:px-12 max-w-7xl mx-auto py-24 pointer-events-none"
+          className="min-h-screen flex flex-col justify-end pb-12 sm:justify-center px-4 sm:px-12 max-w-7xl mx-auto py-24 pointer-events-none"
         >
-          <div className="max-w-md lg:max-w-lg space-y-6 pointer-events-auto p-6 sm:p-0 rounded-3xl sm:rounded-none bg-[#08090C]/85 sm:bg-transparent backdrop-blur-xl sm:backdrop-blur-none border border-white/10 sm:border-none shadow-2xl sm:shadow-none">
+          <div className="max-w-md lg:max-w-lg space-y-6 pointer-events-auto p-6 sm:p-0 rounded-3xl sm:rounded-none bg-[#08090C]/90 sm:bg-transparent backdrop-blur-xl sm:backdrop-blur-none border border-white/10 sm:border-none shadow-2xl sm:shadow-none">
             
             <p className="text-xs font-mono uppercase tracking-[0.25em] text-cyan-400 font-semibold">
               NXT PASS • Clube de Benefícios
@@ -278,8 +277,8 @@ export function ScrollytellingContainer() {
             SECTION 3: GAMIFICAÇÃO & EVOLUÇÃO (Scroll 55% - 80%)
             Phone moves to the Left -> Content on the Right
         ----------------------------------------------------------------------- */}
-        <section className="min-h-screen flex flex-col justify-center items-end px-4 sm:px-12 max-w-7xl mx-auto py-24 pointer-events-none">
-          <div className="max-w-md lg:max-w-lg space-y-6 pointer-events-auto text-left pl-0 md:pl-6 p-6 sm:p-0 rounded-3xl sm:rounded-none bg-[#08090C]/85 sm:bg-transparent backdrop-blur-xl sm:backdrop-blur-none border border-white/10 sm:border-none shadow-2xl sm:shadow-none">
+        <section className="min-h-screen flex flex-col justify-end pb-12 sm:justify-center items-end px-4 sm:px-12 max-w-7xl mx-auto py-24 pointer-events-none">
+          <div className="max-w-md lg:max-w-lg space-y-6 pointer-events-auto text-left pl-0 md:pl-6 p-6 sm:p-0 rounded-3xl sm:rounded-none bg-[#08090C]/90 sm:bg-transparent backdrop-blur-xl sm:backdrop-blur-none border border-white/10 sm:border-none shadow-2xl sm:shadow-none">
             
             <p className="text-xs font-mono uppercase tracking-[0.25em] text-purple-400 font-semibold">
               NXT Score & Progressão
@@ -322,7 +321,7 @@ export function ScrollytellingContainer() {
         ----------------------------------------------------------------------- */}
         <section
           id="secao-login"
-          className="min-h-screen flex flex-col justify-center items-end px-4 sm:px-12 max-w-7xl mx-auto py-24 pointer-events-none"
+          className="min-h-screen flex flex-col justify-end pb-12 sm:justify-center items-end px-4 sm:px-12 max-w-7xl mx-auto py-24 pointer-events-none"
         >
           <div className="max-w-md w-full pointer-events-auto space-y-6">
             <div className="space-y-2">
