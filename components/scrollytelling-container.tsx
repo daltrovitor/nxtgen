@@ -21,6 +21,7 @@ import {
   ShieldCheck,
   Sparkles,
   CheckCircle2,
+  Gamepad2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -90,6 +91,12 @@ export function ScrollytellingContainer() {
     [0.88, 0.94, 0.94, 0.88]
   );
 
+  const yDesktop = useTransform(
+    smoothProgress,
+    [0, 0.33, 0.66, 1],
+    [-45, 20, 75, 40]
+  );
+
   // Mobile responsive transforms: compact 0.52 scale, docked at top, tilts with scroll
   const rotateXMobile = useTransform(smoothProgress, [0, 0.33, 0.66, 1], [6, -4, 6, 0]);
   const rotateYMobile = useTransform(smoothProgress, [0, 0.33, 0.66, 1], [-8, 12, -10, 0]);
@@ -98,7 +105,7 @@ export function ScrollytellingContainer() {
   const yMobile = useTransform(
     smoothProgress,
     [0, 0.33, 0.66, 1],
-    [-170, -150, -155, -180]
+    [-180, -140, -110, -130]
   );
   const scaleMobile = useTransform(smoothProgress, [0, 1], [0.52, 0.52]);
 
@@ -106,7 +113,7 @@ export function ScrollytellingContainer() {
   const rotateY = isMobile ? rotateYMobile : rotateYDesktop;
   const rotateZ = isMobile ? rotateZMobile : rotateZDesktop;
   const x = isMobile ? xMobile : xDesktop;
-  const y = isMobile ? yMobile : undefined;
+  const y = isMobile ? yMobile : yDesktop;
   const scale = isMobile ? scaleMobile : scaleDesktop;
 
   // Track dynamic state on phone screen based on scroll range
@@ -233,6 +240,7 @@ export function ScrollytellingContainer() {
   const [authPass, setAuthPass] = useState("");
   const [authName, setAuthName] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+  const [rememberMe, setRememberMe] = useState(true);
   const [authLoading, setAuthLoading] = useState(false);
   const [authErrorMsg, setAuthErrorMsg] = useState("");
   const [authSuccessMsg, setAuthSuccessMsg] = useState("");
@@ -487,144 +495,210 @@ export function ScrollytellingContainer() {
                 </div>
               </Card>
             ) : (
-              <Card className="relative overflow-hidden rounded-2xl bg-gradient-to-b from-[#0F111A]/95 via-[#0A0C13]/95 to-[#06070B]/95 border border-purple-500/30 backdrop-blur-2xl shadow-[0_0_50px_rgba(139,92,246,0.18)]">
-                {/* Top ambient hairline */}
-                <div className="absolute inset-x-0 top-0 h-[2px] bg-gradient-to-r from-transparent via-purple-500/80 to-transparent" />
+              <div className="relative overflow-hidden rounded-[32px] bg-[#0A0D18]/85 backdrop-blur-3xl border border-white/10 shadow-[0_25px_70px_rgba(0,0,0,0.85)] p-7 sm:p-9 text-white w-full max-w-md mx-auto">
+                {/* Header */}
+                <div className="text-center space-y-1.5 mb-6">
+                  <h2 className="font-heading text-3xl sm:text-4xl font-extrabold tracking-tight text-white">
+                    NXTGEN
+                  </h2>
+                  <p className="text-xs sm:text-sm text-gray-400 font-sans">
+                    Seu ecossistema de benefícios aguarda
+                  </p>
+                  <p className="text-[11px] font-mono text-gray-500">
+                    [Pressione Enter para acessar o ecossistema]
+                  </p>
+                  <div className="flex items-center justify-center space-x-2.5 text-base pt-1">
+                    <span>⚔️</span>
+                    <span>🎮</span>
+                    <span>🏆</span>
+                  </div>
+                </div>
 
-                <CardHeader className="pb-3 pt-6 px-6">
-                  <Tabs value={authTab} onValueChange={(val) => setAuthTab(val as "login" | "signup")} className="w-full">
-                    <TabsList className="grid grid-cols-2 bg-black/60 border border-white/10 p-1 rounded-xl w-full">
-                      <TabsTrigger
-                        value="login"
-                        className="text-xs font-mono font-bold tracking-wide rounded-lg data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-600 data-[state=active]:to-violet-600 data-[state=active]:text-white data-[state=active]:shadow-md transition-all cursor-pointer"
-                      >
-                        Entrar
-                      </TabsTrigger>
-                      <TabsTrigger
-                        value="signup"
-                        className="text-xs font-mono font-bold tracking-wide rounded-lg data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-600 data-[state=active]:to-violet-600 data-[state=active]:text-white data-[state=active]:shadow-md transition-all cursor-pointer"
-                      >
-                        Criar Conta
-                      </TabsTrigger>
-                    </TabsList>
-                  </Tabs>
-                </CardHeader>
+                {authSuccessMsg && (
+                  <div className="mb-4 p-3 rounded-xl bg-emerald-950/60 border border-emerald-500/40 text-emerald-300 text-xs font-mono flex items-center space-x-2">
+                    <CheckCircle2 className="w-4 h-4 shrink-0 text-emerald-400" />
+                    <span>{authSuccessMsg}</span>
+                  </div>
+                )}
 
-                <CardContent className="space-y-4 px-6 pb-6">
-                  {authSuccessMsg && (
-                    <div className="p-3 rounded-xl bg-emerald-950/60 border border-emerald-500/40 text-emerald-300 text-xs font-mono flex items-center space-x-2">
-                      <CheckCircle2 className="w-4 h-4 shrink-0 text-emerald-400" />
-                      <span>{authSuccessMsg}</span>
+                {authErrorMsg && (
+                  <div className="mb-4 p-3 rounded-xl bg-red-950/60 border border-red-500/40 text-red-300 text-xs font-mono flex items-center space-x-2">
+                    <AlertCircle className="w-4 h-4 shrink-0 text-red-400" />
+                    <span>{authErrorMsg}</span>
+                  </div>
+                )}
+
+                <form onSubmit={handleAuthSubmit} className="space-y-4">
+                  {authTab === "signup" && (
+                    <div className="relative">
+                      <User className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                      <input
+                        type="text"
+                        value={authName}
+                        onChange={(e) => setAuthName(e.target.value)}
+                        placeholder="Nome completo"
+                        required
+                        className="w-full pl-10 pr-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500/50 text-sm transition-all font-sans"
+                      />
                     </div>
                   )}
 
-                  {authErrorMsg && (
-                    <div className="p-3 rounded-xl bg-red-950/60 border border-red-500/40 text-red-300 text-xs font-mono flex items-center space-x-2">
-                      <AlertCircle className="w-4 h-4 shrink-0 text-red-400" />
-                      <span>{authErrorMsg}</span>
-                    </div>
-                  )}
+                  <div className="relative">
+                    <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                    <input
+                      type="email"
+                      value={authEmail}
+                      onChange={(e) => setAuthEmail(e.target.value)}
+                      placeholder="Endereço de e-mail"
+                      required
+                      className="w-full pl-10 pr-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500/50 text-sm transition-all font-sans"
+                    />
+                  </div>
 
-                  <form onSubmit={handleAuthSubmit} className="space-y-3.5">
-                    {authTab === "signup" && (
-                      <div className="space-y-1.5">
-                        <label className="text-[11px] font-mono text-gray-400 uppercase tracking-wider block">Nome Completo</label>
-                        <div className="relative">
-                          <User className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-purple-400/70" />
-                          <Input
-                            type="text"
-                            value={authName}
-                            onChange={(e) => setAuthName(e.target.value)}
-                            placeholder="Ex: Rafael Molina"
-                            required
-                            className="pl-10 pr-4 py-2.5 bg-black/50 border-white/10 text-white placeholder-gray-600 focus-visible:border-purple-500 focus-visible:ring-1 focus-visible:ring-purple-500/50 rounded-xl font-sans"
-                          />
-                        </div>
-                      </div>
-                    )}
-
-                    <div className="space-y-1.5">
-                      <label className="text-[11px] font-mono text-gray-400 uppercase tracking-wider block">E-mail</label>
-                      <div className="relative">
-                        <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-purple-400/70" />
-                        <Input
-                          type="email"
-                          value={authEmail}
-                          onChange={(e) => setAuthEmail(e.target.value)}
-                          placeholder="rafael.molina@nxtgen.app"
-                          required
-                          className="pl-10 pr-4 py-2.5 bg-black/50 border-white/10 text-white placeholder-gray-600 focus-visible:border-purple-500 focus-visible:ring-1 focus-visible:ring-purple-500/50 rounded-xl font-sans"
-                        />
-                      </div>
-                    </div>
-
-                    <div className="space-y-1.5">
-                      <label className="text-[11px] font-mono text-gray-400 uppercase tracking-wider block">Senha</label>
-                      <div className="relative">
-                        <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-purple-400/70" />
-                        <Input
-                          type={showPassword ? "text" : "password"}
-                          value={authPass}
-                          onChange={(e) => setAuthPass(e.target.value)}
-                          placeholder="••••••••••••"
-                          required
-                          className="pl-10 pr-10 py-2.5 bg-black/50 border-white/10 text-white placeholder-gray-600 focus-visible:border-purple-500 focus-visible:ring-1 focus-visible:ring-purple-500/50 rounded-xl font-sans"
-                        />
-                        <button
-                          type="button"
-                          onClick={() => setShowPassword(!showPassword)}
-                          className="absolute right-3.5 top-1/2 -translate-y-1/2 text-gray-500 hover:text-white transition-colors cursor-pointer"
-                        >
-                          {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                        </button>
-                      </div>
-                    </div>
-
-                    <Button
-                      type="submit"
-                      disabled={authLoading}
-                      className="w-full py-5 mt-2 bg-gradient-to-r from-purple-600 via-violet-600 to-cyan-500 hover:from-purple-500 hover:to-cyan-400 text-white font-mono text-xs font-bold uppercase tracking-wider rounded-xl shadow-[0_0_24px_rgba(139,92,246,0.45)] hover:shadow-[0_0_32px_rgba(139,92,246,0.7)] transition-all cursor-pointer"
-                    >
-                      {authLoading ? (
-                        <span className="flex items-center space-x-2">
-                          <Loader2 className="w-4 h-4 animate-spin mr-2" />
-                          Autenticando...
-                        </span>
-                      ) : authTab === "login" ? (
-                        "Acessar Plataforma"
-                      ) : (
-                        "Criar Conta Instantânea"
-                      )}
-                    </Button>
-                  </form>
-
-                  {/* Preencher Demo Limpo */}
-                  <div className="pt-2 border-t border-white/10">
+                  <div className="relative">
+                    <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                    <input
+                      type={showPassword ? "text" : "password"}
+                      value={authPass}
+                      onChange={(e) => setAuthPass(e.target.value)}
+                      placeholder="Senha"
+                      required
+                      className="w-full pl-10 pr-10 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500/50 text-sm transition-all font-sans"
+                    />
                     <button
                       type="button"
-                      onClick={() => {
-                        setAuthTab("login");
-                        setAuthEmail("rafael.molina@nxtgen.app");
-                        setAuthPass("Nxtgen2026!");
-                        setAuthErrorMsg("");
-                      }}
-                      className="w-full flex items-center justify-between p-2.5 rounded-xl border border-dashed border-cyan-500/30 bg-cyan-950/20 hover:bg-cyan-950/40 text-cyan-400 hover:text-cyan-300 font-mono text-[11px] transition-colors cursor-pointer"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="absolute right-3.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white transition-colors cursor-pointer"
                     >
-                      <span className="flex items-center space-x-1.5">
-                        <Sparkles className="w-3.5 h-3.5" />
-                        <span>Preencher Conta Demo (Rafael Molina)</span>
-                      </span>
-                      <span className="text-[10px] uppercase font-bold text-cyan-500">Auto ⚡</span>
+                      {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                     </button>
                   </div>
 
-                  {/* Trust security badge */}
-                  <div className="pt-1 flex items-center justify-center space-x-2 text-[10px] font-mono text-gray-500">
-                    <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
-                    <span>Row Level Security (RLS) & Criptografia Ativa</span>
+                  <div className="flex items-center justify-between text-xs text-gray-400 pt-0.5 select-none">
+                    <label className="flex items-center space-x-2.5 cursor-pointer">
+                      <button
+                        type="button"
+                        role="switch"
+                        aria-checked={rememberMe}
+                        onClick={() => setRememberMe(!rememberMe)}
+                        className={`w-9 h-5 rounded-full p-0.5 transition-colors cursor-pointer ${
+                          rememberMe ? "bg-[#8B24F0]" : "bg-white/20"
+                        }`}
+                      >
+                        <div
+                          className={`w-4 h-4 rounded-full bg-white transition-transform ${
+                            rememberMe ? "translate-x-4" : "translate-x-0"
+                          }`}
+                        />
+                      </button>
+                      <span className="text-gray-300">Lembrar de mim</span>
+                    </label>
+
+                    <button
+                      type="button"
+                      onClick={() => alert("Instruções de recuperação enviadas para o suporte.")}
+                      className="text-gray-400 hover:text-white transition-colors cursor-pointer"
+                    >
+                      Esqueceu a senha?
+                    </button>
                   </div>
-                </CardContent>
-              </Card>
+
+                  <button
+                    type="submit"
+                    disabled={authLoading}
+                    className="w-full py-3.5 mt-1 bg-[#8B24F0] hover:bg-[#9d3df3] text-white font-bold text-sm rounded-xl shadow-[0_0_25px_rgba(139,36,240,0.5)] hover:shadow-[0_0_35px_rgba(139,36,240,0.7)] transition-all flex items-center justify-center space-x-2 cursor-pointer disabled:opacity-50"
+                  >
+                    {authLoading ? (
+                      <span className="flex items-center space-x-2">
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                        <span>Processando...</span>
+                      </span>
+                    ) : authTab === "login" ? (
+                      "Entrar no NXTGEN"
+                    ) : (
+                      "Criar Conta NXTGEN"
+                    )}
+                  </button>
+                </form>
+
+                {/* Quick access separator */}
+                <div className="relative flex py-4 items-center">
+                  <div className="flex-grow border-t border-white/10"></div>
+                  <span className="flex-shrink mx-3 text-gray-400 text-xs font-sans">
+                    acesso rápido via
+                  </span>
+                  <div className="flex-grow border-t border-white/10"></div>
+                </div>
+
+                {/* Quick access 3 buttons */}
+                <div className="grid grid-cols-3 gap-3">
+                  {/* Google */}
+                  <button
+                    type="button"
+                    className="p-3 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 flex items-center justify-center text-gray-300 hover:text-white transition-colors cursor-pointer group"
+                    title="Acesso via Google"
+                  >
+                    <svg className="w-4 h-4 fill-current group-hover:scale-110 transition-transform" viewBox="0 0 24 24">
+                      <path d="M12.24 10.285V13.4h6.887C18.2 16.14 15.645 18 12.24 18c-3.315 0-6-2.685-6-6s2.685-6 6-6c1.455 0 2.785.525 3.82 1.39l2.405-2.405C16.92 3.55 14.73 2.6 12.24 2.6 7.07 2.6 2.88 6.79 2.88 12s4.19 9.4 9.36 9.4c5.4 0 8.98-3.79 8.98-9.14 0-.61-.06-1.22-.17-1.975H12.24z" />
+                    </svg>
+                  </button>
+
+                  {/* Twitter / X */}
+                  <button
+                    type="button"
+                    className="p-3 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 flex items-center justify-center text-gray-300 hover:text-white transition-colors cursor-pointer group"
+                    title="Acesso via X / Twitter"
+                  >
+                    <svg className="w-4 h-4 fill-current group-hover:scale-110 transition-transform" viewBox="0 0 24 24">
+                      <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
+                    </svg>
+                  </button>
+
+                  {/* Discord / Gaming */}
+                  <button
+                    type="button"
+                    className="p-3 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 flex items-center justify-center text-gray-300 hover:text-white transition-colors cursor-pointer group"
+                    title="Acesso via Gaming"
+                  >
+                    <Gamepad2 className="w-4 h-4 group-hover:scale-110 transition-transform" />
+                  </button>
+                </div>
+
+                {/* Footer mode switch */}
+                <div className="text-center text-xs text-gray-400 pt-5">
+                  {authTab === "login" ? (
+                    <>
+                      Não tem uma conta?{" "}
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setAuthTab("signup");
+                          setAuthErrorMsg("");
+                          setAuthSuccessMsg("");
+                        }}
+                        className="font-bold text-white hover:text-purple-400 transition-colors ml-1 cursor-pointer"
+                      >
+                        Criar Conta
+                      </button>
+                    </>
+                  ) : (
+                    <>
+                      Já tem uma conta?{" "}
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setAuthTab("login");
+                          setAuthErrorMsg("");
+                          setAuthSuccessMsg("");
+                        }}
+                        className="font-bold text-white hover:text-purple-400 transition-colors ml-1 cursor-pointer"
+                      >
+                        Entrar
+                      </button>
+                    </>
+                  )}
+                </div>
+              </div>
             )}
           </div>
         </section>
@@ -640,9 +714,9 @@ export function ScrollytellingContainer() {
             <Image
               src="/logonxtgen.png"
               alt="NXTGEN"
-              width={130}
-              height={36}
-              className="h-7 w-auto object-contain opacity-80 hover:opacity-100 transition-opacity"
+              width={200}
+              height={55}
+              className="h-10 md:h-12 w-auto object-contain opacity-90 hover:opacity-100 transition-opacity"
             />
           </div>
           <div className="flex items-center space-x-6 text-gray-400">

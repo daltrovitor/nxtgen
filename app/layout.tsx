@@ -40,6 +40,7 @@ export const viewport: Viewport = {
 };
 
 import { AuthProvider } from "@/hooks/use-auth";
+import { CursorRibbons } from "@/components/cursor-ribbons";
 
 export default function RootLayout({
   children,
@@ -56,7 +57,8 @@ export default function RootLayout({
         jetbrainsMono.variable
       )}
     >
-      <body className="min-h-full flex flex-col bg-[#08090C] text-[#F3F4F6]">
+      <body className="min-h-full flex flex-col bg-[#000000] text-[#F3F4F6]">
+        <CursorRibbons colors={["#8B5CF6", "#06B6D4", "#A855F7"]} />
         <AuthProvider>
           {children}
         </AuthProvider>

@@ -79,11 +79,17 @@
   }
 
   a,
+  a *,
   button,
+  button *,
   input,
   select,
   textarea,
+  label,
   [role="button"],
+  [role="button"] *,
+  [role="tab"],
+  [role="tab"] *,
   .cursor-pointer,
   .cursor-pointer * {
     cursor: url("/cursor-pointer.png") 6 2, pointer !important;

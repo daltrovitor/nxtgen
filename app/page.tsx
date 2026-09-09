@@ -6,14 +6,14 @@ export default function HomePage() {
   return (
     <main className="min-h-screen bg-[#000000] text-[#F3F4F6] selection:bg-purple-600 selection:text-white">
       {/* Top Fixed Header with Official Logo */}
-      <header className="fixed top-0 left-0 right-0 z-50 bg-[#000000]/90 backdrop-blur-md border-b border-white/10 px-6 py-3 flex items-center justify-between">
+      <header className="fixed top-0 left-0 right-0 z-50 bg-[#000000]/90 backdrop-blur-md border-b border-white/10 px-6 sm:px-10 py-3.5 flex items-center justify-between">
         <Link href="/" className="flex items-center group">
           <Image
             src="/logonxtgen.png"
             alt="NXTGEN"
-            width={150}
-            height={40}
-            className="h-8 md:h-9 w-auto object-contain transition-opacity group-hover:opacity-90"
+            width={220}
+            height={60}
+            className="h-11 sm:h-12 md:h-14 w-auto object-contain transition-opacity group-hover:opacity-90 drop-shadow-[0_0_20px_rgba(139,92,246,0.3)]"
             priority
           />
         </Link>
