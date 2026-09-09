@@ -1,0 +1,21 @@
+{
+  "name": "NXTGEN - The Future Pays More",
+  "short_name": "NXTGEN",
+  "description": "Ecossistema de benefícios, fintech e comunidade para Gerações Alpha e Z",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0a0b10",
+  "theme_color": "#0a0b10",
+  "icons": [
+    {
+      "src": "/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
