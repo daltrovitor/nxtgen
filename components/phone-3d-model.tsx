@@ -42,164 +42,166 @@ function renderPhoneScreenCanvas(
   const w = canvas.width;
   const h = canvas.height;
 
-  // 1. OLED Screen Background (Deep Black with subtle purple glow)
-  ctx.fillStyle = "#06070a";
+  // 1. OLED Screen Background (Deep Black with high-contrast violet radial aura)
+  ctx.fillStyle = "#050609";
   ctx.fillRect(0, 0, w, h);
 
-  const bgGradient = ctx.createRadialGradient(w / 2, 250, 60, w / 2, 450, 700);
-  bgGradient.addColorStop(0, "rgba(139, 92, 246, 0.14)");
-  bgGradient.addColorStop(1, "rgba(6, 7, 10, 0)");
+  const bgGradient = ctx.createRadialGradient(w / 2, 280, 50, w / 2, 500, 800);
+  bgGradient.addColorStop(0, "rgba(168, 85, 247, 0.22)");
+  bgGradient.addColorStop(1, "rgba(5, 6, 9, 0)");
   ctx.fillStyle = bgGradient;
   ctx.fillRect(0, 0, w, h);
 
   // 2. Status Bar (9:41, Cellular, WiFi, Battery)
   ctx.fillStyle = "#ffffff";
-  ctx.font = "bold 38px 'Inter', -apple-system, sans-serif";
+  ctx.font = "800 44px 'Inter', -apple-system, system-ui, sans-serif";
   ctx.textAlign = "left";
-  ctx.fillText("9:41", 80, 95);
+  ctx.fillText("9:41", 80, 96);
 
   // Cellular bars
-  const barX = w - 190;
+  const barX = w - 210;
   for (let i = 0; i < 4; i++) {
     ctx.fillStyle = i < 4 ? "#ffffff" : "rgba(255,255,255,0.3)";
-    ctx.fillRect(barX + i * 11, 95 - (i + 1) * 6, 7, (i + 1) * 6);
+    ctx.fillRect(barX + i * 13, 98 - (i + 1) * 7, 8, (i + 1) * 7);
   }
+
   // WiFi Wave symbol
   ctx.strokeStyle = "#ffffff";
-  ctx.lineWidth = 4;
+  ctx.lineWidth = 4.5;
   ctx.beginPath();
-  ctx.arc(w - 128, 92, 14, Math.PI * 1.25, Math.PI * 1.75);
+  ctx.arc(w - 140, 93, 16, Math.PI * 1.25, Math.PI * 1.75);
   ctx.stroke();
   ctx.beginPath();
-  ctx.arc(w - 128, 92, 7, Math.PI * 1.25, Math.PI * 1.75);
+  ctx.arc(w - 140, 93, 8, Math.PI * 1.25, Math.PI * 1.75);
   ctx.stroke();
 
   // Battery capsule
-  const batX = w - 95;
-  ctx.strokeStyle = "rgba(255,255,255,0.85)";
-  ctx.lineWidth = 3.5;
+  const batX = w - 100;
+  ctx.strokeStyle = "rgba(255,255,255,0.9)";
+  ctx.lineWidth = 4;
   ctx.beginPath();
-  ctx.roundRect(batX, 76, 46, 24, 7);
+  ctx.roundRect(batX, 74, 52, 28, 8);
   ctx.stroke();
-  ctx.fillStyle = "#ffffff";
+  ctx.fillStyle = "#34d399"; // Full charged green indicator
   ctx.beginPath();
-  ctx.roundRect(batX + 3.5, 79.5, 30, 17, 4);
+  ctx.roundRect(batX + 4, 78, 36, 20, 4);
   ctx.fill();
-  ctx.fillRect(batX + 46, 84, 3, 8);
+  ctx.fillStyle = "rgba(255,255,255,0.9)";
+  ctx.fillRect(batX + 52, 83, 3.5, 10);
 
   // Dynamic Island Notch
-  const diWidth = 280;
-  const diHeight = 74;
+  const diWidth = 290;
+  const diHeight = 76;
   const diX = (w - diWidth) / 2;
-  const diY = 48;
+  const diY = 46;
   ctx.fillStyle = "#000000";
   ctx.beginPath();
-  ctx.roundRect(diX, diY, diWidth, diHeight, 37);
+  ctx.roundRect(diX, diY, diWidth, diHeight, 38);
   ctx.fill();
-  ctx.strokeStyle = "rgba(255,255,255,0.1)";
+  ctx.strokeStyle = "rgba(255,255,255,0.14)";
   ctx.lineWidth = 2;
   ctx.stroke();
 
-  // Front camera lens reflection inside dynamic island
+  // Front camera lens inside dynamic island
   ctx.fillStyle = "#0f172a";
   ctx.beginPath();
-  ctx.arc(diX + 45, diY + 37, 14, 0, Math.PI * 2);
+  ctx.arc(diX + 48, diY + 38, 15, 0, Math.PI * 2);
   ctx.fill();
-  ctx.fillStyle = "#1e1b4b";
+  ctx.fillStyle = "#312e81";
   ctx.beginPath();
-  ctx.arc(diX + 45, diY + 37, 7, 0, Math.PI * 2);
+  ctx.arc(diX + 48, diY + 38, 7.5, 0, Math.PI * 2);
   ctx.fill();
 
   // 3. Top Tag & Notification Bell
-  ctx.fillStyle = "rgba(168, 85, 247, 0.18)";
+  ctx.fillStyle = "rgba(168, 85, 247, 0.22)";
   ctx.beginPath();
-  ctx.roundRect(65, 175, 175, 48, 24);
+  ctx.roundRect(65, 175, 185, 52, 26);
   ctx.fill();
-  ctx.strokeStyle = "rgba(168, 85, 247, 0.4)";
-  ctx.lineWidth = 2;
+  ctx.strokeStyle = "rgba(192, 132, 252, 0.6)";
+  ctx.lineWidth = 2.5;
   ctx.stroke();
 
-  ctx.font = "bold 22px 'JetBrains Mono', monospace";
-  ctx.fillStyle = "#c084fc";
+  ctx.font = "bold 24px 'JetBrains Mono', monospace";
+  ctx.fillStyle = "#d8b4fe";
   ctx.textAlign = "center";
-  ctx.fillText("NXT PASS", 65 + 175 / 2, 206);
+  ctx.fillText("NXT PASS", 65 + 185 / 2, 208);
 
   // Bell button circle
   const bellX = w - 90;
-  const bellY = 199;
-  ctx.fillStyle = "rgba(255,255,255,0.08)";
+  const bellY = 201;
+  ctx.fillStyle = "rgba(255,255,255,0.1)";
   ctx.beginPath();
-  ctx.arc(bellX, bellY, 26, 0, Math.PI * 2);
+  ctx.arc(bellX, bellY, 28, 0, Math.PI * 2);
   ctx.fill();
-  ctx.strokeStyle = "rgba(255,255,255,0.12)";
-  ctx.lineWidth = 1.5;
+  ctx.strokeStyle = "rgba(255,255,255,0.15)";
+  ctx.lineWidth = 2;
   ctx.stroke();
 
-  ctx.font = "24px 'Inter', sans-serif";
-  ctx.fillStyle = "#e2e8f0";
-  ctx.fillText("🔔", bellX, bellY + 7);
+  ctx.font = "26px 'Inter', sans-serif";
+  ctx.fillStyle = "#ffffff";
+  ctx.fillText("🔔", bellX, bellY + 8);
 
   // Notification dot
   ctx.fillStyle = "#c084fc";
   ctx.beginPath();
-  ctx.arc(bellX + 16, bellY - 14, 7, 0, Math.PI * 2);
+  ctx.arc(bellX + 17, bellY - 15, 8, 0, Math.PI * 2);
   ctx.fill();
 
-  // 4. Greeting Header
+  // 4. Greeting Header (High Visibility & Bold Contrast)
   ctx.textAlign = "left";
   ctx.fillStyle = "#ffffff";
-  ctx.font = "bold 58px 'Inter', sans-serif";
-  ctx.fillText("Bom dia, Rafael 👋", 65, 305);
+  ctx.font = "800 68px 'Inter', system-ui, sans-serif";
+  ctx.fillText("Bom dia, Rafael 👋", 65, 310);
 
   ctx.fillStyle = "#c084fc";
-  ctx.font = "bold 38px 'Inter', sans-serif";
-  ctx.fillText("Você está evoluindo!", 65, 365);
+  ctx.font = "800 46px 'Inter', system-ui, sans-serif";
+  ctx.fillText("Você está evoluindo!", 65, 375);
 
-  ctx.fillStyle = "#94a3b8";
-  ctx.font = "400 28px 'Inter', sans-serif";
-  ctx.fillText("Continue acumulando hábitos e subindo de nível.", 65, 415);
+  ctx.fillStyle = "#cbd5e1";
+  ctx.font = "500 30px 'Inter', system-ui, sans-serif";
+  ctx.fillText("Substitua impulsos por benefícios reais.", 65, 428);
 
   // 5. Level Card (NXT Level 3)
   const cardX = 65;
-  const cardY = 475;
+  const cardY = 485;
   const cardW = w - 130;
-  const cardH = 370;
+  const cardH = 390;
 
   const cardGrad = ctx.createLinearGradient(cardX, cardY, cardX + cardW, cardY + cardH);
-  cardGrad.addColorStop(0, "#1c142e");
-  cardGrad.addColorStop(1, "#0d0b17");
+  cardGrad.addColorStop(0, "#23173d");
+  cardGrad.addColorStop(1, "#100c1e");
 
   ctx.fillStyle = cardGrad;
   ctx.beginPath();
-  ctx.roundRect(cardX, cardY, cardW, cardH, 36);
+  ctx.roundRect(cardX, cardY, cardW, cardH, 38);
   ctx.fill();
 
-  ctx.strokeStyle = "rgba(168, 85, 247, 0.4)";
-  ctx.lineWidth = 3;
+  ctx.strokeStyle = "rgba(192, 132, 252, 0.55)";
+  ctx.lineWidth = 3.5;
   ctx.stroke();
 
   // Card Content
-  ctx.font = "600 24px 'JetBrains Mono', monospace";
-  ctx.fillStyle = "#94a3b8";
-  ctx.fillText("SEU NÍVEL ATUAL", cardX + 45, cardY + 68);
+  ctx.font = "bold 26px 'JetBrains Mono', monospace";
+  ctx.fillStyle = "#cbd5e1";
+  ctx.fillText("SEU NÍVEL ATUAL", cardX + 45, cardY + 70);
 
-  ctx.font = "bold 56px 'Inter', sans-serif";
+  ctx.font = "800 66px 'Inter', system-ui, sans-serif";
   ctx.fillStyle = "#ffffff";
-  ctx.fillText("NXT Level 3", cardX + 45, cardY + 135);
+  ctx.fillText("NXT Level 3", cardX + 45, cardY + 145);
 
-  ctx.font = "500 24px 'Inter', sans-serif";
-  ctx.fillStyle = "#a855f7";
-  ctx.fillText("Desbloqueie salas VIP ilimitadas no Nível 4", cardX + 45, cardY + 180);
+  ctx.font = "600 26px 'Inter', system-ui, sans-serif";
+  ctx.fillStyle = "#d8b4fe";
+  ctx.fillText("Desbloqueie salas VIP ilimitadas no Nível 4", cardX + 45, cardY + 195);
 
-  // Hexagonal Level 3 Badge
-  const badgeCenterX = cardX + cardW - 95;
-  const badgeCenterY = cardY + 100;
-  const badgeSize = 52;
+  // Hexagonal Level 3 Badge (High Contrast)
+  const badgeCenterX = cardX + cardW - 100;
+  const badgeCenterY = cardY + 110;
+  const badgeSize = 58;
   ctx.save();
   ctx.translate(badgeCenterX, badgeCenterY);
-  ctx.fillStyle = "rgba(139, 92, 246, 0.28)";
+  ctx.fillStyle = "rgba(168, 85, 247, 0.4)";
   ctx.strokeStyle = "#c084fc";
-  ctx.lineWidth = 4;
+  ctx.lineWidth = 5;
   ctx.beginPath();
   for (let i = 0; i < 6; i++) {
     const angle = (Math.PI / 3) * i;
@@ -213,33 +215,33 @@ function renderPhoneScreenCanvas(
   ctx.stroke();
 
   ctx.fillStyle = "#ffffff";
-  ctx.font = "bold 44px 'JetBrains Mono', monospace";
+  ctx.font = "800 52px 'JetBrains Mono', monospace";
   ctx.textAlign = "center";
   ctx.textBaseline = "middle";
-  ctx.fillText("3", 0, 2);
+  ctx.fillText("3", 0, 3);
   ctx.restore();
 
   // XP Progress Bar
   ctx.textAlign = "left";
   ctx.textBaseline = "alphabetic";
-  ctx.font = "600 26px 'JetBrains Mono', monospace";
+  ctx.font = "bold 28px 'JetBrains Mono', monospace";
   ctx.fillStyle = "#c084fc";
-  ctx.fillText("XP da Temporada", cardX + 45, cardY + 250);
+  ctx.fillText("XP da Temporada", cardX + 45, cardY + 268);
 
   ctx.textAlign = "right";
   ctx.fillStyle = "#ffffff";
-  ctx.font = "bold 26px 'JetBrains Mono', monospace";
-  ctx.fillText("2.150 / 3.000 XP", cardX + cardW - 45, cardY + 250);
+  ctx.font = "bold 28px 'JetBrains Mono', monospace";
+  ctx.fillText("2.150 / 3.000 XP", cardX + cardW - 45, cardY + 268);
 
   // Progress Bar Track
   const trackX = cardX + 45;
-  const trackY = cardY + 275;
+  const trackY = cardY + 292;
   const trackW = cardW - 90;
-  const trackH = 24;
+  const trackH = 26;
 
-  ctx.fillStyle = "rgba(0, 0, 0, 0.65)";
+  ctx.fillStyle = "rgba(0, 0, 0, 0.75)";
   ctx.beginPath();
-  ctx.roundRect(trackX, trackY, trackW, trackH, 12);
+  ctx.roundRect(trackX, trackY, trackW, trackH, 13);
   ctx.fill();
 
   // Progress Bar Fill
@@ -247,40 +249,40 @@ function renderPhoneScreenCanvas(
   const fillW = trackW * fillPercent;
   const fillGrad = ctx.createLinearGradient(trackX, trackY, trackX + fillW, trackY);
   fillGrad.addColorStop(0, "#9333ea");
-  fillGrad.addColorStop(0.5, "#a855f7");
+  fillGrad.addColorStop(0.5, "#c084fc");
   fillGrad.addColorStop(1, "#06b6d4");
 
   ctx.fillStyle = fillGrad;
   ctx.beginPath();
-  ctx.roundRect(trackX, trackY, fillW, trackH, 12);
+  ctx.roundRect(trackX, trackY, fillW, trackH, 13);
   ctx.fill();
 
   ctx.textAlign = "left";
-  ctx.font = "bold 22px 'JetBrains Mono', monospace";
+  ctx.font = "bold 24px 'JetBrains Mono', monospace";
   ctx.fillStyle = "#34d399";
-  ctx.fillText("+350 XP hoje • 71.6% da temporada", cardX + 45, cardY + 338);
+  ctx.fillText("✓ +350 XP hoje • 71.6% da temporada", cardX + 45, cardY + 358);
 
   // 6. Benefits Grid Title
   ctx.textAlign = "left";
-  ctx.font = "bold 38px 'Inter', sans-serif";
+  ctx.font = "800 42px 'Inter', system-ui, sans-serif";
   ctx.fillStyle = "#ffffff";
-  ctx.fillText("Seus benefícios", 65, 905);
+  ctx.fillText("Seus benefícios", 65, 930);
 
   ctx.textAlign = "right";
-  ctx.font = "600 28px 'Inter', sans-serif";
+  ctx.font = "bold 30px 'Inter', system-ui, sans-serif";
   ctx.fillStyle = "#c084fc";
-  ctx.fillText("Ver todos ›", w - 65, 905);
+  ctx.fillText("Ver todos ›", w - 65, 930);
 
   // 7. Benefits Cards (3 Columns)
-  const bY = 945;
-  const bH = 260;
+  const bY = 970;
+  const bH = 275;
   const bMargin = 20;
   const bW = (w - 130 - bMargin * 2) / 3;
 
   const benefits = [
-    { title: "Salas VIP", sub: "Ilimitado", desc: "Aeroportos", color: "#a855f7", icon: "✈" },
-    { title: "Cashback", sub: "R$ 45,00", desc: "Disponível Pix", color: "#06b6d4", icon: "✦" },
-    { title: "Anuidade", sub: "Grátis", desc: "Economia total", color: "#3b82f6", icon: "💳" },
+    { title: "Salas VIP", sub: "Ilimitado", desc: "Aeroportos", color: "#c084fc", icon: "✈" },
+    { title: "Cashback", sub: "R$ 45,00", desc: "Disponível Pix", color: "#22d3ee", icon: "✦" },
+    { title: "Anuidade", sub: "Grátis", desc: "Cartão Black", color: "#60a5fa", icon: "💳" },
   ];
 
   benefits.forEach((b, idx) => {
@@ -288,144 +290,141 @@ function renderPhoneScreenCanvas(
 
     // Card background
     ctx.fillStyle = options.highlightBenefits
-      ? "rgba(28, 20, 48, 0.95)"
-      : "rgba(15, 18, 28, 0.88)";
+      ? "rgba(38, 26, 62, 0.98)"
+      : "rgba(18, 20, 32, 0.92)";
     ctx.beginPath();
-    ctx.roundRect(bX, bY, bW, bH, 28);
+    ctx.roundRect(bX, bY, bW, bH, 30);
     ctx.fill();
 
     ctx.strokeStyle = options.highlightBenefits
-      ? "rgba(192, 132, 252, 0.9)"
-      : "rgba(255, 255, 255, 0.08)";
-    ctx.lineWidth = options.highlightBenefits ? 4 : 2;
+      ? "rgba(192, 132, 252, 1.0)"
+      : "rgba(255, 255, 255, 0.12)";
+    ctx.lineWidth = options.highlightBenefits ? 4.5 : 2;
     ctx.stroke();
 
     // Icon Circle
-    ctx.fillStyle = b.color + "25";
+    ctx.fillStyle = b.color + "30";
     ctx.beginPath();
-    ctx.arc(bX + bW / 2, bY + 60, 36, 0, Math.PI * 2);
+    ctx.arc(bX + bW / 2, bY + 62, 38, 0, Math.PI * 2);
     ctx.fill();
 
     ctx.fillStyle = b.color;
-    ctx.font = "34px 'Inter', sans-serif";
+    ctx.font = "38px 'Inter', sans-serif";
     ctx.textAlign = "center";
     ctx.textBaseline = "middle";
-    ctx.fillText(b.icon, bX + bW / 2, bY + 60);
+    ctx.fillText(b.icon, bX + bW / 2, bY + 62);
 
     // Title & Subtitle & Description
     ctx.textBaseline = "alphabetic";
-    ctx.font = "bold 28px 'Inter', sans-serif";
+    ctx.font = "800 32px 'Inter', system-ui, sans-serif";
     ctx.fillStyle = "#ffffff";
-    ctx.fillText(b.title, bX + bW / 2, bY + 140);
+    ctx.fillText(b.title, bX + bW / 2, bY + 148);
 
-    ctx.font = "bold 24px 'JetBrains Mono', monospace";
+    ctx.font = "bold 26px 'JetBrains Mono', monospace";
     ctx.fillStyle = b.color;
-    ctx.fillText(b.sub, bX + bW / 2, bY + 185);
+    ctx.fillText(b.sub, bX + bW / 2, bY + 195);
 
-    ctx.font = "400 20px 'Inter', sans-serif";
+    ctx.font = "500 22px 'Inter', system-ui, sans-serif";
     ctx.fillStyle = "#94a3b8";
-    ctx.fillText(b.desc, bX + bW / 2, bY + 225);
+    ctx.fillText(b.desc, bX + bW / 2, bY + 238);
   });
 
-  // 8. Quests & Activities (Fills middle/lower screen)
+  // 8. Quests & Activities (High Visibility)
   // Quest 1: Meta Semanal
-  const q1Y = 1255;
-  const qH = 135;
-  ctx.fillStyle = "rgba(18, 15, 28, 0.9)";
+  const q1Y = 1290;
+  const qH = 145;
+  ctx.fillStyle = "rgba(22, 18, 35, 0.94)";
   ctx.beginPath();
-  ctx.roundRect(65, q1Y, w - 130, qH, 28);
+  ctx.roundRect(65, q1Y, w - 130, qH, 30);
   ctx.fill();
-  ctx.strokeStyle = "rgba(255, 255, 255, 0.08)";
+  ctx.strokeStyle = "rgba(255, 255, 255, 0.1)";
   ctx.lineWidth = 2;
   ctx.stroke();
 
-  // Green dot
   ctx.fillStyle = "#10b981";
   ctx.beginPath();
-  ctx.arc(110, q1Y + qH / 2, 12, 0, Math.PI * 2);
+  ctx.arc(115, q1Y + qH / 2, 13, 0, Math.PI * 2);
   ctx.fill();
 
   ctx.textAlign = "left";
-  ctx.font = "bold 28px 'Inter', sans-serif";
+  ctx.font = "800 30px 'Inter', system-ui, sans-serif";
   ctx.fillStyle = "#ffffff";
-  ctx.fillText("Meta Semanal: Poupança Automática", 145, q1Y + 55);
+  ctx.fillText("Meta Semanal: Poupança Automática", 150, q1Y + 58);
 
-  ctx.font = "400 24px 'Inter', sans-serif";
-  ctx.fillStyle = "#94a3b8";
-  ctx.fillText("Economize R$ 50 para liberar cupons exclusivos", 145, q1Y + 98);
+  ctx.font = "500 24px 'Inter', system-ui, sans-serif";
+  ctx.fillStyle = "#cbd5e1";
+  ctx.fillText("Guarde R$ 50 para liberar cupons exclusivos", 150, q1Y + 104);
 
   ctx.textAlign = "right";
-  ctx.font = "bold 26px 'JetBrains Mono', monospace";
+  ctx.font = "bold 28px 'JetBrains Mono', monospace";
   ctx.fillStyle = "#34d399";
-  ctx.fillText("+150 XP", w - 100, q1Y + qH / 2 + 8);
+  ctx.fillText("+150 XP", w - 100, q1Y + qH / 2 + 10);
 
   // Quest 2: Desafio Hábitos Saudáveis
-  const q2Y = 1425;
-  ctx.fillStyle = "rgba(18, 15, 28, 0.9)";
+  const q2Y = 1465;
+  ctx.fillStyle = "rgba(22, 18, 35, 0.94)";
   ctx.beginPath();
-  ctx.roundRect(65, q2Y, w - 130, qH, 28);
+  ctx.roundRect(65, q2Y, w - 130, qH, 30);
   ctx.fill();
-  ctx.strokeStyle = "rgba(255, 255, 255, 0.08)";
+  ctx.strokeStyle = "rgba(255, 255, 255, 0.1)";
   ctx.lineWidth = 2;
   ctx.stroke();
 
-  // Purple dot
-  ctx.fillStyle = "#a855f7";
+  ctx.fillStyle = "#c084fc";
   ctx.beginPath();
-  ctx.arc(110, q2Y + qH / 2, 12, 0, Math.PI * 2);
+  ctx.arc(115, q2Y + qH / 2, 13, 0, Math.PI * 2);
   ctx.fill();
 
   ctx.textAlign = "left";
-  ctx.font = "bold 28px 'Inter', sans-serif";
+  ctx.font = "800 30px 'Inter', system-ui, sans-serif";
   ctx.fillStyle = "#ffffff";
-  ctx.fillText("Desafio: 14 Dias Sem Apostas", 145, q2Y + 55);
+  ctx.fillText("Desafio: 14 Dias Sem Apostas", 150, q2Y + 58);
 
-  ctx.font = "400 24px 'Inter', sans-serif";
-  ctx.fillStyle = "#94a3b8";
-  ctx.fillText("Progresso da comunidade: 11/14 dias concluídos", 145, q2Y + 98);
+  ctx.font = "500 24px 'Inter', system-ui, sans-serif";
+  ctx.fillStyle = "#cbd5e1";
+  ctx.fillText("Progresso da comunidade: 11/14 dias concluídos", 150, q2Y + 104);
+
+  ctx.textAlign = "right";
+  ctx.font = "bold 28px 'JetBrains Mono', monospace";
+  ctx.fillStyle = "#c084fc";
+  ctx.fillText("+500 XP", w - 100, q2Y + qH / 2 + 10);
+
+  // Quest 3: Cupom Ativo em Destaque
+  const q3Y = 1640;
+  ctx.fillStyle = "rgba(22, 18, 35, 0.94)";
+  ctx.beginPath();
+  ctx.roundRect(65, q3Y, w - 130, qH, 30);
+  ctx.fill();
+  ctx.strokeStyle = "rgba(255, 255, 255, 0.1)";
+  ctx.lineWidth = 2;
+  ctx.stroke();
+
+  ctx.fillStyle = "#22d3ee";
+  ctx.beginPath();
+  ctx.arc(115, q3Y + qH / 2, 13, 0, Math.PI * 2);
+  ctx.fill();
+
+  ctx.textAlign = "left";
+  ctx.font = "800 30px 'Inter', system-ui, sans-serif";
+  ctx.fillStyle = "#ffffff";
+  ctx.fillText("Cupom Ativo: 20% Off Starbucks", 150, q3Y + 58);
+
+  ctx.font = "500 24px 'Inter', system-ui, sans-serif";
+  ctx.fillStyle = "#cbd5e1";
+  ctx.fillText("Válido até 15/10 • Toque para resgate rápido", 150, q3Y + 104);
 
   ctx.textAlign = "right";
   ctx.font = "bold 26px 'JetBrains Mono', monospace";
-  ctx.fillStyle = "#c084fc";
-  ctx.fillText("+500 XP", w - 100, q2Y + qH / 2 + 8);
-
-  // Quest 3: Cupom Ativo em Destaque
-  const q3Y = 1595;
-  ctx.fillStyle = "rgba(18, 15, 28, 0.9)";
-  ctx.beginPath();
-  ctx.roundRect(65, q3Y, w - 130, qH, 28);
-  ctx.fill();
-  ctx.strokeStyle = "rgba(255, 255, 255, 0.08)";
-  ctx.lineWidth = 2;
-  ctx.stroke();
-
-  // Cyan dot
-  ctx.fillStyle = "#06b6d4";
-  ctx.beginPath();
-  ctx.arc(110, q3Y + qH / 2, 12, 0, Math.PI * 2);
-  ctx.fill();
-
-  ctx.textAlign = "left";
-  ctx.font = "bold 28px 'Inter', sans-serif";
-  ctx.fillStyle = "#ffffff";
-  ctx.fillText("Cupom Ativo: 20% Off Starbucks", 145, q3Y + 55);
-
-  ctx.font = "400 24px 'Inter', sans-serif";
-  ctx.fillStyle = "#94a3b8";
-  ctx.fillText("Válido até 15/10 • Toque para resgate rápido", 145, q3Y + 98);
-
-  ctx.textAlign = "right";
-  ctx.font = "bold 24px 'JetBrains Mono', monospace";
   ctx.fillStyle = "#22d3ee";
-  ctx.fillText("Resgatar ›", w - 100, q3Y + qH / 2 + 8);
+  ctx.fillText("Resgatar ›", w - 100, q3Y + qH / 2 + 10);
 
   // 9. Bottom Navigation Dock (5 Tabs)
-  const navY = h - 200;
-  const navH = 150;
-  ctx.fillStyle = "rgba(8, 9, 13, 0.96)";
+  const navY = h - 210;
+  const navH = 160;
+  ctx.fillStyle = "rgba(7, 8, 12, 0.97)";
   ctx.fillRect(0, navY, w, navH);
 
-  ctx.strokeStyle = "rgba(255, 255, 255, 0.08)";
+  ctx.strokeStyle = "rgba(255, 255, 255, 0.12)";
   ctx.lineWidth = 2;
   ctx.beginPath();
   ctx.moveTo(0, navY);
@@ -444,17 +443,17 @@ function renderPhoneScreenCanvas(
   tabs.forEach((t, i) => {
     const tX = i * tabWidth + tabWidth / 2;
     ctx.textAlign = "center";
-    ctx.font = "36px 'Inter', sans-serif";
+    ctx.font = "40px 'Inter', sans-serif";
     ctx.fillStyle = t.active ? "#c084fc" : "#64748b";
-    ctx.fillText(t.icon, tX, navY + 58);
+    ctx.fillText(t.icon, tX, navY + 62);
 
     ctx.font = t.active ? "bold 24px 'Inter', sans-serif" : "500 22px 'Inter', sans-serif";
-    ctx.fillText(t.label, tX, navY + 98);
+    ctx.fillText(t.label, tX, navY + 105);
 
     if (t.active) {
       ctx.fillStyle = "#c084fc";
       ctx.beginPath();
-      ctx.arc(tX, navY + 115, 4, 0, Math.PI * 2);
+      ctx.arc(tX, navY + 122, 4.5, 0, Math.PI * 2);
       ctx.fill();
     }
   });
@@ -462,7 +461,7 @@ function renderPhoneScreenCanvas(
   // Home Indicator Bar (iOS)
   const barWidth = 280;
   const barYPos = h - 25;
-  ctx.fillStyle = "rgba(255, 255, 255, 0.65)";
+  ctx.fillStyle = "rgba(255, 255, 255, 0.75)";
   ctx.beginPath();
   ctx.roundRect((w - barWidth) / 2, barYPos, barWidth, 8, 4);
   ctx.fill();
@@ -541,6 +540,18 @@ export function Phone3DModel({
     }
   }, [highlightBenefits, animateXp]);
 
+  // Re-draw once fonts are fully ready so typography is pixel-perfect
+  useEffect(() => {
+    if (typeof document !== "undefined" && document.fonts) {
+      document.fonts.ready.then(() => {
+        if (screenCanvasRef.current && screenTextureRef.current) {
+          renderPhoneScreenCanvas(screenCanvasRef.current, { highlightBenefits, animateXp });
+          screenTextureRef.current.needsUpdate = true;
+        }
+      });
+    }
+  }, [highlightBenefits, animateXp]);
+
   useEffect(() => {
     const container = mountRef.current;
     if (!container) return;
@@ -548,11 +559,11 @@ export function Phone3DModel({
     // 1. Three.js Scene, Camera & Renderer
     const scene = new THREE.Scene();
 
-    const width = container.clientWidth || 380;
-    const height = container.clientHeight || 750;
+    const width = container.clientWidth || 400;
+    const height = container.clientHeight || 800;
 
     const camera = new THREE.PerspectiveCamera(40, width / height, 0.1, 100);
-    camera.position.set(0, 0, 11.2);
+    camera.position.set(0, 0, 9.8);
 
     const renderer = new THREE.WebGLRenderer({
       alpha: true,
@@ -782,8 +793,8 @@ export function Phone3DModel({
     const glassMat = new THREE.MeshPhysicalMaterial({
       color: 0xffffff,
       transparent: true,
-      opacity: 0.04,
-      roughness: 0.06,
+      opacity: 0.02,
+      roughness: 0.05,
       metalness: 0.05,
       clearcoat: 1.0,
       clearcoatRoughness: 0.04,
@@ -793,31 +804,84 @@ export function Phone3DModel({
     glassMesh.position.set(0, 0, phoneDepth / 2 + 0.083);
     phoneGroup.add(glassMesh);
 
-    // 4. Mouse Interactive Parallax Listener
-    const handleMouseMove = (e: MouseEvent) => {
-      const normX = (e.clientX / window.innerWidth) * 2 - 1;
-      const normY = (e.clientY / window.innerHeight) * 2 - 1;
-      mouseOffsetRef.current = {
-        x: normX * 4.5, // subtle degrees
-        y: -normY * 4.5,
-      };
-    };
-    window.addEventListener("mousemove", handleMouseMove);
+    // 4. Interactive Pointer Dragging & Expressive Parallax
+    const dragOffset = { x: 0, y: 0 };
+    const dragVelocity = { x: 0, y: 0 };
+    let isDragging = false;
+    let lastPointerX = 0;
+    let lastPointerY = 0;
 
-    // 5. Animation Render Loop (Silky 60fps interpolation)
+    const handlePointerDown = (e: PointerEvent) => {
+      isDragging = true;
+      lastPointerX = e.clientX;
+      lastPointerY = e.clientY;
+      dragVelocity.x = 0;
+      dragVelocity.y = 0;
+      try {
+        container.setPointerCapture?.(e.pointerId);
+      } catch {}
+    };
+
+    const handlePointerMove = (e: PointerEvent) => {
+      if (isDragging) {
+        const dx = e.clientX - lastPointerX;
+        const dy = e.clientY - lastPointerY;
+        lastPointerX = e.clientX;
+        lastPointerY = e.clientY;
+        dragOffset.y += dx * 0.45;
+        dragOffset.x += dy * 0.45;
+        dragVelocity.x = dy * 0.45;
+        dragVelocity.y = dx * 0.45;
+      } else {
+        const normX = (e.clientX / window.innerWidth) * 2 - 1;
+        const normY = (e.clientY / window.innerHeight) * 2 - 1;
+        mouseOffsetRef.current = {
+          x: normX * 10.0,
+          y: -normY * 10.0,
+        };
+      }
+    };
+
+    const handlePointerUp = (e: PointerEvent) => {
+      if (isDragging) {
+        isDragging = false;
+        try {
+          container.releasePointerCapture?.(e.pointerId);
+        } catch {}
+      }
+    };
+
+    container.addEventListener("pointerdown", handlePointerDown);
+    window.addEventListener("pointermove", handlePointerMove);
+    window.addEventListener("pointerup", handlePointerUp);
+    window.addEventListener("pointercancel", handlePointerUp);
+
+    // 5. Animation Render Loop (Silky 60fps interpolation with momentum)
     let animationFrameId: number;
 
     const animate = () => {
       animationFrameId = requestAnimationFrame(animate);
 
-      // Smooth interpolation toward target rotation + mouse offset
-      const targetX = targetRotationRef.current.x + mouseOffsetRef.current.y;
-      const targetY = targetRotationRef.current.y + mouseOffsetRef.current.x;
-      const targetZ = targetRotationRef.current.z;
+      if (!isDragging) {
+        // Momentum decay
+        dragVelocity.x *= 0.90;
+        dragVelocity.y *= 0.90;
+        dragOffset.x += dragVelocity.x;
+        dragOffset.y += dragVelocity.y;
 
-      currentRotationRef.current.x += (targetX - currentRotationRef.current.x) * 0.08;
-      currentRotationRef.current.y += (targetY - currentRotationRef.current.y) * 0.08;
-      currentRotationRef.current.z += (targetZ - currentRotationRef.current.z) * 0.08;
+        // Smooth spring return to section target angle
+        dragOffset.x *= 0.93;
+        dragOffset.y *= 0.93;
+      }
+
+      // Smooth interpolation toward target rotation + mouse offset + user drag
+      const targetX = targetRotationRef.current.x + mouseOffsetRef.current.y + dragOffset.x;
+      const targetY = targetRotationRef.current.y + mouseOffsetRef.current.x + dragOffset.y;
+      const targetZ = targetRotationRef.current.z + (mouseOffsetRef.current.x * 0.35);
+
+      currentRotationRef.current.x += (targetX - currentRotationRef.current.x) * 0.085;
+      currentRotationRef.current.y += (targetY - currentRotationRef.current.y) * 0.085;
+      currentRotationRef.current.z += (targetZ - currentRotationRef.current.z) * 0.085;
 
       phoneGroup.rotation.x = THREE.MathUtils.degToRad(currentRotationRef.current.x);
       phoneGroup.rotation.y = THREE.MathUtils.degToRad(currentRotationRef.current.y);
@@ -831,8 +895,8 @@ export function Phone3DModel({
     // 6. Handle Window Resize
     const handleResize = () => {
       if (!container) return;
-      const newW = container.clientWidth || 380;
-      const newH = container.clientHeight || 750;
+      const newW = container.clientWidth || 400;
+      const newH = container.clientHeight || 800;
       camera.aspect = newW / newH;
       camera.updateProjectionMatrix();
       renderer.setSize(newW, newH);
@@ -841,7 +905,10 @@ export function Phone3DModel({
 
     // 7. Cleanup on Unmount
     return () => {
-      window.removeEventListener("mousemove", handleMouseMove);
+      container.removeEventListener("pointerdown", handlePointerDown);
+      window.removeEventListener("pointermove", handlePointerMove);
+      window.removeEventListener("pointerup", handlePointerUp);
+      window.removeEventListener("pointercancel", handlePointerUp);
       window.removeEventListener("resize", handleResize);
       cancelAnimationFrame(animationFrameId);
 
@@ -871,18 +938,18 @@ export function Phone3DModel({
     <div className={className}>
       {/* Background Multi-layer Ambient Backlight (Glow Purple & Glow Cyan) */}
       <div
-        className="absolute -inset-4 rounded-[60px] bg-gradient-to-tr from-purple-600/30 via-violet-500/20 to-cyan-400/25 blur-2xl -z-10 transition-opacity duration-700 pointer-events-none"
+        className="absolute -inset-4 rounded-[60px] bg-gradient-to-tr from-purple-600/35 via-violet-500/25 to-cyan-400/30 blur-2xl -z-10 transition-opacity duration-700 pointer-events-none"
         style={{ opacity: glowIntensity }}
       />
       <div
-        className="absolute -inset-10 rounded-[80px] bg-purple-600/15 blur-3xl -z-20 pointer-events-none animate-pulse"
+        className="absolute -inset-10 rounded-[80px] bg-purple-600/18 blur-3xl -z-20 pointer-events-none animate-pulse"
         style={{ animationDuration: "6s" }}
       />
 
       {/* WebGL 3D Canvas Mount Point */}
       <div
         ref={mountRef}
-        className="w-[340px] sm:w-[380px] h-[680px] sm:h-[750px] flex items-center justify-center pointer-events-auto"
+        className="w-[350px] sm:w-[420px] h-[700px] sm:h-[820px] flex items-center justify-center pointer-events-auto cursor-grab active:cursor-grabbing select-none touch-none"
       />
     </div>
   );

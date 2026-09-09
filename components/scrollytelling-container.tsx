@@ -4,6 +4,9 @@ import React, { useRef, useState, useEffect } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { motion, useScroll, useTransform, useSpring } from "framer-motion";
+import Lenis from "lenis";
+import gsap from "gsap";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { Phone3DModel } from "@/components/phone-3d-model";
 import { useAuth } from "@/hooks/use-auth";
 import {
@@ -15,6 +18,10 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+
+if (typeof window !== "undefined") {
+  gsap.registerPlugin(ScrollTrigger);
+}
 
 export function ScrollytellingContainer() {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -50,36 +57,40 @@ export function ScrollytellingContainer() {
   const rotateXDesktop = useTransform(
     smoothProgress,
     [0, 0.2, 0.45, 0.75, 1],
-    [12, 12, 10, 8, 0]
+    [14, 14, 8, 14, 2]
   );
   const rotateYDesktop = useTransform(
     smoothProgress,
     [0, 0.2, 0.45, 0.75, 1],
-    [-15, -15, -24, 20, -4]
+    [-18, -18, -34, 32, -8]
   );
   const rotateZDesktop = useTransform(
     smoothProgress,
     [0, 0.2, 0.45, 0.75, 1],
-    [4, 4, -2, 2, 0]
+    [5, 5, -5, 6, 0]
   );
   const xDesktop = useTransform(
     smoothProgress,
     [0, 0.2, 0.45, 0.75, 1],
-    [0, 0, 290, -290, -260]
+    [220, 220, 330, -330, -270]
   );
   const scaleDesktop = useTransform(
     smoothProgress,
     [0, 0.2, 0.45, 0.75, 1],
-    [1, 1, 1.05, 1.05, 0.95]
+    [1.0, 1.0, 1.08, 1.08, 0.98]
   );
 
-  // Mobile clamped transforms: phone scaled to 0.58 and positioned at top half so text fits below
-  const rotateXMobile = useTransform(smoothProgress, [0, 1], [6, 0]);
-  const rotateYMobile = useTransform(smoothProgress, [0, 0.5, 1], [-8, 8, 0]);
-  const rotateZMobile = useTransform(smoothProgress, [0, 1], [2, 0]);
+  // Mobile clamped transforms: dynamic tilts and dock positioning
+  const rotateXMobile = useTransform(smoothProgress, [0, 0.35, 0.7, 1], [10, -6, 8, 2]);
+  const rotateYMobile = useTransform(smoothProgress, [0, 0.35, 0.7, 1], [-14, 18, -14, 0]);
+  const rotateZMobile = useTransform(smoothProgress, [0, 0.35, 0.7, 1], [3, -3, 3, 0]);
   const xMobile = useTransform(smoothProgress, [0, 1], [0, 0]);
-  const yMobile = useTransform(smoothProgress, [0, 0.25, 0.55, 0.8, 1], [-175, -150, -150, -160, -190]);
-  const scaleMobile = useTransform(smoothProgress, [0, 1], [0.54, 0.54]);
+  const yMobile = useTransform(
+    smoothProgress,
+    [0, 0.25, 0.55, 0.8, 1],
+    [-185, -165, -165, -175, -200]
+  );
+  const scaleMobile = useTransform(smoothProgress, [0, 1], [0.55, 0.55]);
 
   const rotateX = isMobile ? rotateXMobile : rotateXDesktop;
   const rotateY = isMobile ? rotateYMobile : rotateYDesktop;
@@ -87,6 +98,9 @@ export function ScrollytellingContainer() {
   const x = isMobile ? xMobile : xDesktop;
   const y = isMobile ? yMobile : undefined;
   const scale = isMobile ? scaleMobile : scaleDesktop;
+
+  // Pure black start: ambient radial and tech grid fade in as scroll begins
+  const ambientGlowOpacity = useTransform(smoothProgress, [0, 0.12], [0, 1]);
 
   // Track dynamic state on phone screen based on scroll range
   const [currentSection, setCurrentSection] = useState(0);
@@ -99,6 +113,110 @@ export function ScrollytellingContainer() {
       else setCurrentSection(3);
     });
   }, [smoothProgress]);
+
+  // Smooth scroll via Lenis + GSAP ScrollTrigger synchronization
+  useEffect(() => {
+    const lenis = new Lenis({
+      duration: 1.2,
+      easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
+      orientation: "vertical",
+      gestureOrientation: "vertical",
+      smoothWheel: true,
+      wheelMultiplier: 1,
+    });
+
+    lenis.on("scroll", ScrollTrigger.update);
+
+    const tickerCallback = (time: number) => {
+      lenis.raf(time * 1000);
+    };
+    gsap.ticker.add(tickerCallback);
+    gsap.ticker.lagSmoothing(0);
+
+    const ctx = gsap.context(() => {
+      // Hero reveal
+      gsap.fromTo(
+        [".gsap-hero-tag", ".gsap-hero-title", ".gsap-hero-sub", ".gsap-hero-cta"],
+        { opacity: 0, y: 20 },
+        { opacity: 1, y: 0, duration: 0.9, stagger: 0.12, ease: "power3.out", delay: 0.2 }
+      );
+
+      // Section 2: NXT PASS benefits reveal on scroll
+      gsap.fromTo(
+        [".gsap-pass-tag", ".gsap-pass-title", ".gsap-pass-desc"],
+        { opacity: 0, y: 25 },
+        {
+          opacity: 1,
+          y: 0,
+          duration: 0.8,
+          stagger: 0.12,
+          ease: "power2.out",
+          scrollTrigger: {
+            trigger: "#secao-pass",
+            start: "top 80%",
+            toggleActions: "play none none reverse",
+          },
+        }
+      );
+      gsap.fromTo(
+        ".gsap-pass-item",
+        { opacity: 0, x: -25 },
+        {
+          opacity: 1,
+          x: 0,
+          duration: 0.6,
+          stagger: 0.15,
+          ease: "power2.out",
+          scrollTrigger: {
+            trigger: "#secao-pass",
+            start: "top 70%",
+            toggleActions: "play none none reverse",
+          },
+        }
+      );
+
+      // Section 3: Gamification reveal on scroll
+      gsap.fromTo(
+        [".gsap-gamify-tag", ".gsap-gamify-title", ".gsap-gamify-desc", ".gsap-gamify-card"],
+        { opacity: 0, y: 25 },
+        {
+          opacity: 1,
+          y: 0,
+          duration: 0.8,
+          stagger: 0.12,
+          ease: "power2.out",
+          scrollTrigger: {
+            trigger: "#secao-gamificacao",
+            start: "top 80%",
+            toggleActions: "play none none reverse",
+          },
+        }
+      );
+
+      // Section 4: Auth reveal
+      gsap.fromTo(
+        ".gsap-auth-reveal",
+        { opacity: 0, y: 30 },
+        {
+          opacity: 1,
+          y: 0,
+          duration: 0.8,
+          ease: "power2.out",
+          scrollTrigger: {
+            trigger: "#secao-login",
+            start: "top 85%",
+            toggleActions: "play none none reverse",
+          },
+        }
+      );
+    }, containerRef);
+
+    return () => {
+      ctx.revert();
+      gsap.ticker.remove(tickerCallback);
+      lenis.destroy();
+    };
+  }, []);
 
   // Auth Integration (Connected to /api/auth and useAuth)
   const router = useRouter();
@@ -147,10 +265,13 @@ export function ScrollytellingContainer() {
   };
 
   return (
-    <div ref={containerRef} className="relative w-full bg-[#08090C] text-[#F3F4F6]">
+    <div ref={containerRef} className="relative w-full bg-[#000000] text-[#F3F4F6]">
       
-      {/* Ambient Radial Background & Technical Grid */}
-      <div className="fixed inset-0 bg-tech-grid bg-radial-gradient pointer-events-none -z-10" />
+      {/* Ambient Radial Background & Technical Grid (fades in as user scrolls) */}
+      <motion.div
+        style={{ opacity: ambientGlowOpacity }}
+        className="fixed inset-0 bg-tech-grid bg-radial-gradient pointer-events-none -z-10"
+      />
 
       {/* =========================================================================
           STICKY 3D PHONE VIEWPORT
@@ -184,15 +305,15 @@ export function ScrollytellingContainer() {
             SECTION 1: HERO (Scroll 0% - 25%)
         ----------------------------------------------------------------------- */}
         <section className="min-h-screen flex flex-col justify-end pb-12 sm:justify-center px-4 sm:px-12 max-w-7xl mx-auto py-20 pointer-events-none">
-          <div className="max-w-xl space-y-6 pointer-events-auto p-6 sm:p-0 rounded-3xl sm:rounded-none bg-[#08090C]/90 sm:bg-transparent backdrop-blur-xl sm:backdrop-blur-none border border-white/10 sm:border-none shadow-2xl sm:shadow-none">
+          <div className="max-w-md lg:max-w-lg space-y-6 pointer-events-auto p-6 sm:p-0 rounded-3xl sm:rounded-none bg-[#08090C]/90 sm:bg-transparent backdrop-blur-xl sm:backdrop-blur-none border border-white/10 sm:border-none shadow-2xl sm:shadow-none">
             
             {/* Tagline Sem Balão */}
-            <p className="text-xs font-mono uppercase tracking-[0.25em] text-purple-400 font-semibold">
+            <p className="gsap-hero-tag text-xs font-mono uppercase tracking-[0.25em] text-purple-400 font-semibold">
               Build. Don&apos;t Bet.
             </p>
 
             {/* Title */}
-            <h1 className="font-heading text-4xl sm:text-6xl md:text-7xl font-bold tracking-tight text-white leading-[1.05]">
+            <h1 className="gsap-hero-title font-heading text-4xl sm:text-6xl md:text-7xl font-bold tracking-tight text-white leading-[1.05]">
               The Future <br />
               <span className="bg-gradient-to-r from-purple-400 via-violet-200 to-cyan-300 bg-clip-text text-transparent">
                 Pays More.
@@ -200,13 +321,13 @@ export function ScrollytellingContainer() {
             </h1>
 
             {/* Subtitle */}
-            <p className="text-base sm:text-lg text-gray-400 font-sans leading-relaxed">
+            <p className="gsap-hero-sub text-base sm:text-lg text-gray-400 font-sans leading-relaxed">
               O super app que transforma hábitos positivos em recompensas. 
               Substitua impulsos por salas VIP, cashback, investimentos e experiências reais.
             </p>
 
             {/* CTAs */}
-            <div className="pt-2 flex flex-wrap gap-4 font-mono text-xs">
+            <div className="gsap-hero-cta pt-2 flex flex-wrap gap-4 font-mono text-xs">
               <a
                 href="#secao-login"
                 className="px-6 py-3.5 rounded-xl bg-gradient-to-r from-purple-600 via-violet-600 to-cyan-500 text-white font-bold uppercase tracking-wider shadow-[0_0_25px_rgba(139,92,246,0.5)] hover:scale-105 active:scale-95 transition-all flex items-center space-x-2"
@@ -240,32 +361,32 @@ export function ScrollytellingContainer() {
         >
           <div className="max-w-md lg:max-w-lg space-y-6 pointer-events-auto p-6 sm:p-0 rounded-3xl sm:rounded-none bg-[#08090C]/90 sm:bg-transparent backdrop-blur-xl sm:backdrop-blur-none border border-white/10 sm:border-none shadow-2xl sm:shadow-none">
             
-            <p className="text-xs font-mono uppercase tracking-[0.25em] text-cyan-400 font-semibold">
+            <p className="gsap-pass-tag text-xs font-mono uppercase tracking-[0.25em] text-cyan-400 font-semibold">
               NXT PASS • Clube de Benefícios
             </p>
 
-            <h2 className="font-heading text-3xl sm:text-5xl font-bold text-white tracking-tight leading-tight">
+            <h2 className="gsap-pass-title font-heading text-3xl sm:text-5xl font-bold text-white tracking-tight leading-tight">
               Descontos reais. <br />
               <span className="text-cyan-400">Vantagens exclusivas.</span>
             </h2>
 
-            <p className="text-sm sm:text-base text-gray-400 leading-relaxed font-sans">
+            <p className="gsap-pass-desc text-sm sm:text-base text-gray-400 leading-relaxed font-sans">
               Um marketplace independente direto no seu bolso. Acesse experiências únicas, gastronomia selecionada, moda streetwear e tecnologia com vantagens de verdade.
             </p>
 
             {/* Lista Editorial Limpa Sem Ícones Exagerados */}
             <div className="space-y-4 pt-2 font-sans">
-              <div className="border-l-2 border-cyan-400/60 pl-4 py-1">
+              <div className="gsap-pass-item border-l-2 border-cyan-400/60 pl-4 py-1">
                 <h3 className="text-sm font-bold text-white">Salas VIP & Viagens</h3>
                 <p className="text-xs text-gray-400">Acesso a lounges em aeroportos e upgrades selecionados.</p>
               </div>
 
-              <div className="border-l-2 border-purple-400/60 pl-4 py-1">
+              <div className="gsap-pass-item border-l-2 border-purple-400/60 pl-4 py-1">
                 <h3 className="text-sm font-bold text-white">Cashback Instantâneo via Pix</h3>
                 <p className="text-xs text-gray-400">Economia real de 20% a 50% em estabelecimentos credenciados.</p>
               </div>
 
-              <div className="border-l-2 border-blue-400/60 pl-4 py-1">
+              <div className="gsap-pass-item border-l-2 border-blue-400/60 pl-4 py-1">
                 <h3 className="text-sm font-bold text-white">Cupons Digitais Protegidos</h3>
                 <p className="text-xs text-gray-400">Geração de códigos exclusivos direto no celular para uso no balcão.</p>
               </div>
@@ -277,26 +398,29 @@ export function ScrollytellingContainer() {
             SECTION 3: GAMIFICAÇÃO & EVOLUÇÃO (Scroll 55% - 80%)
             Phone moves to the Left -> Content on the Right
         ----------------------------------------------------------------------- */}
-        <section className="min-h-screen flex flex-col justify-end pb-12 sm:justify-center items-end px-4 sm:px-12 max-w-7xl mx-auto py-24 pointer-events-none">
+        <section
+          id="secao-gamificacao"
+          className="min-h-screen flex flex-col justify-end pb-12 sm:justify-center items-end px-4 sm:px-12 max-w-7xl mx-auto py-24 pointer-events-none"
+        >
           <div className="max-w-md lg:max-w-lg space-y-6 pointer-events-auto text-left pl-0 md:pl-6 p-6 sm:p-0 rounded-3xl sm:rounded-none bg-[#08090C]/90 sm:bg-transparent backdrop-blur-xl sm:backdrop-blur-none border border-white/10 sm:border-none shadow-2xl sm:shadow-none">
             
-            <p className="text-xs font-mono uppercase tracking-[0.25em] text-purple-400 font-semibold">
+            <p className="gsap-gamify-tag text-xs font-mono uppercase tracking-[0.25em] text-purple-400 font-semibold">
               NXT Score & Progressão
             </p>
 
-            <h2 className="font-heading text-3xl sm:text-5xl font-bold text-white tracking-tight leading-tight">
+            <h2 className="gsap-gamify-title font-heading text-3xl sm:text-5xl font-bold text-white tracking-tight leading-tight">
               As bets lucram com a perda. <br />
               <span className="bg-gradient-to-r from-purple-400 to-violet-300 bg-clip-text text-transparent">
                 Nós premiamos suas conquistas.
               </span>
             </h2>
 
-            <p className="text-sm sm:text-base text-gray-400 leading-relaxed font-sans">
+            <p className="gsap-gamify-desc text-sm sm:text-base text-gray-400 leading-relaxed font-sans">
               Cada hábito saudável pontua no seu <strong className="text-white">NXT Level</strong>: economizar, completar metas e participar dos eventos da comunidade. 
               Suba de nível e desbloqueie limites diferenciados, anuidade zero e benefícios maiores.
             </p>
 
-            <div className="p-4 rounded-2xl bg-[#13111C] border border-purple-500/20 space-y-3">
+            <div className="gsap-gamify-card p-4 rounded-2xl bg-[#13111C] border border-purple-500/20 space-y-3">
               <div className="flex items-center justify-between text-xs font-mono">
                 <span className="text-purple-300 font-medium">Temporada Atual</span>
                 <span className="text-emerald-400 font-bold">+350 XP Hoje</span>
@@ -323,7 +447,7 @@ export function ScrollytellingContainer() {
           id="secao-login"
           className="min-h-screen flex flex-col justify-end pb-12 sm:justify-center items-end px-4 sm:px-12 max-w-7xl mx-auto py-24 pointer-events-none"
         >
-          <div className="max-w-md w-full pointer-events-auto space-y-6">
+          <div className="gsap-auth-reveal max-w-md w-full pointer-events-auto space-y-6">
             <div className="space-y-2">
               <p className="text-xs font-mono uppercase tracking-[0.25em] text-purple-400 font-semibold">
                 Acesso à Plataforma
