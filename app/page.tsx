@@ -1,19 +1,23 @@
 import Image from "next/image";
 import Link from "next/link";
 import { ScrollytellingContainer } from "@/components/scrollytelling-container";
+import { Preloader } from "@/components/preloader";
 
 export default function HomePage() {
   return (
     <main className="min-h-screen bg-[#000000] text-[#F3F4F6] selection:bg-purple-600 selection:text-white">
-      {/* Top Fixed Header with Official Logo */}
-      <header className="fixed top-0 left-0 right-0 z-50 bg-[#000000]/90 backdrop-blur-md border-b border-white/10 px-6 sm:px-10 py-3.5 flex items-center justify-between">
+      {/* Fast 4s Animated Futuristic Preloader (inspired by ashens.store) */}
+      <Preloader durationMs={3800} />
+
+      {/* Top Fixed Header with Enlarged Official Logo */}
+      <header className="fixed top-0 left-0 right-0 z-50 bg-[#000000]/90 backdrop-blur-md border-b border-white/10 px-6 sm:px-10 py-2.5 sm:py-3.5 flex items-center justify-between">
         <Link href="/" className="flex items-center group">
           <Image
             src="/logonxtgen.png"
             alt="NXTGEN"
-            width={220}
-            height={60}
-            className="h-11 sm:h-12 md:h-14 w-auto object-contain transition-opacity group-hover:opacity-90 drop-shadow-[0_0_20px_rgba(139,92,246,0.3)]"
+            width={280}
+            height={80}
+            className="h-14 sm:h-16 md:h-20 w-auto object-contain transition-all duration-300 group-hover:scale-105 drop-shadow-[0_0_25px_rgba(139,92,246,0.45)]"
             priority
           />
         </Link>

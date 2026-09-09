@@ -38,6 +38,7 @@ class UserStore {
     const salt = crypto.randomBytes(16).toString("hex");
     const passwordHash = this.hashPassword("Nxtgen2026!", salt);
 
+    // 1. Normal user (role: 'user')
     const initialUser: StoredUser = {
       id: DEFAULT_DEMO_USER.id,
       email: DEFAULT_DEMO_USER.email.toLowerCase(),
@@ -52,8 +53,26 @@ class UserStore {
       emailConfirmed: true, // No email confirmation required!
       createdAt: new Date().toISOString(),
     };
-
     this.users.set(initialUser.email, initialUser);
+
+    // 2. Administrator account (role: 'admin') - verified role separation
+    const adminSalt = crypto.randomBytes(16).toString("hex");
+    const adminPassHash = this.hashPassword("AdminNxtgen2026!", adminSalt);
+    const adminUser: StoredUser = {
+      id: "usr_admin_master",
+      email: "admin@ashens.store",
+      fullName: "Administrador Master NXTGEN",
+      passwordHash: adminPassHash,
+      salt: adminSalt,
+      role: "admin",
+      nxtScore: 9999,
+      nxtLevel: 5,
+      avatarUrl: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=200&h=200&fit=crop&q=80",
+      walletBalance: 15000.00,
+      emailConfirmed: true,
+      createdAt: new Date().toISOString(),
+    };
+    this.users.set(adminUser.email, adminUser);
   }
 
   hashPassword(password: string, salt: string): string {
@@ -68,6 +87,18 @@ class UserStore {
     return Array.from(this.users.values()).find((u) => u.id === id);
   }
 
+  getAllUsers(): StoredUser[] {
+    return Array.from(this.users.values());
+  }
+
+  updateRole(idOrEmail: string, newRole: "user" | "admin"): StoredUser | null {
+    const user = this.findByEmail(idOrEmail) || this.findById(idOrEmail);
+    if (!user) return null;
+    user.role = newRole;
+    this.users.set(user.email, user);
+    return user;
+  }
+
   createUser(email: string, fullName: string, plainPassword: string): StoredUser {
     const normalizedEmail = email.toLowerCase().trim();
     if (this.users.has(normalizedEmail)) {
@@ -78,6 +109,7 @@ class UserStore {
     const passwordHash = this.hashPassword(plainPassword, salt);
     const id = `usr_${Date.now().toString(36)}_${crypto.randomBytes(4).toString("hex")}`;
 
+    // All newly registered users strictly default to role: 'user'
     const newUser: StoredUser = {
       id,
       email: normalizedEmail,

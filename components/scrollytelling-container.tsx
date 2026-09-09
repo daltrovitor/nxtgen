@@ -52,49 +52,51 @@ export function ScrollytellingContainer() {
     offset: ["start start", "end end"],
   });
 
-  // Smooth spring physics for silky real-time scroll tracking
+  // Smooth spring physics for silky real-time scroll tracking with momentum
   const smoothProgress = useSpring(scrollYProgress, {
-    stiffness: 80,
-    damping: 24,
-    mass: 0.7,
+    stiffness: 85,
+    damping: 22,
+    mass: 0.55,
     restDelta: 0.0005,
   });
 
   // =========================================================================
   // 3D PHONE MOTION TRANSFORMATIONS
-  // Calibrated across stages: Hero -> PASS -> Gamify -> Auth Card Stop
-  // Descends along scroll and stops higher up (y = -25) to align with Auth Card
+  // Fluid, dynamic trajectory: sweeps, rolls and pitches across sections,
+  // and settles smoothly at the exact user-specified anchor point beside the auth card.
   // =========================================================================
   const rotateXDesktop = useTransform(
     smoothProgress,
-    [0, 0.22, 0.38, 0.52, 0.68, 0.85, 1],
-    [6, 8, 7, 8, 8, 6, 4]
+    [0, 0.20, 0.38, 0.54, 0.72, 0.88, 1],
+    [7, 14, 8, 14, 10, 5, 4]
   );
   const rotateYDesktop = useTransform(
     smoothProgress,
-    [0, 0.22, 0.38, 0.52, 0.68, 0.85, 1],
-    [-16, -22, -20, 22, 22, 14, 12]
+    [0, 0.20, 0.38, 0.54, 0.72, 0.88, 1],
+    [-18, -32, -26, 32, 26, 14, 12]
   );
   const rotateZDesktop = useTransform(
     smoothProgress,
-    [0, 0.22, 0.38, 0.52, 0.68, 0.85, 1],
-    [2, -1, -2, 3, 3, 1, 0]
+    [0, 0.20, 0.38, 0.54, 0.72, 0.88, 1],
+    [2, -4, -2, 5, 3, 1, 0]
   );
   const xDesktop = useTransform(
     smoothProgress,
-    [0, 0.22, 0.38, 0.52, 0.68, 0.85, 1],
-    [260, 275, 280, -280, -280, -275, -270]
+    [0, 0.20, 0.38, 0.54, 0.72, 0.88, 1],
+    [260, 280, 280, -280, -285, -275, -275]
   );
   const scaleDesktop = useTransform(
     smoothProgress,
-    [0, 0.22, 0.38, 0.52, 0.68, 0.85, 1],
-    [0.90, 0.92, 0.93, 0.93, 0.93, 0.91, 0.90]
+    [0, 0.20, 0.38, 0.54, 0.72, 0.88, 1],
+    [0.91, 0.93, 0.94, 0.94, 0.93, 0.91, 0.91]
   );
 
+  // Vertical trajectory: gently climbs down during hero & pass, then settles squarely at y = 0
+  // aligned with the center of the auth card as requested by the user.
   const yDesktop = useTransform(
     smoothProgress,
-    [0, 0.22, 0.38, 0.52, 0.68, 0.85, 1],
-    [0, 35, 65, 75, 50, 0, -50]
+    [0, 0.20, 0.38, 0.54, 0.72, 0.88, 1],
+    [0, 35, 65, 60, 35, 0, 0]
   );
 
   // Mobile responsive transforms: compact 0.52 scale, docked at top, tilts with scroll
@@ -491,7 +493,7 @@ export function ScrollytellingContainer() {
         ----------------------------------------------------------------------- */}
         <section
           id="secao-login"
-          className="min-h-[135vh] flex flex-col justify-end pb-12 sm:justify-center items-end px-4 sm:px-12 max-w-7xl mx-auto py-36 pointer-events-none"
+          className="min-h-screen flex flex-col justify-center items-end px-4 sm:px-12 max-w-7xl mx-auto py-16 sm:py-24 pointer-events-none"
         >
           <div className="max-w-md w-full pointer-events-auto space-y-6">
             <div className="gsap-auth-header space-y-2">
@@ -513,17 +515,42 @@ export function ScrollytellingContainer() {
                     {currentUser.name ? currentUser.name[0] : "U"}
                   </div>
                   <div>
-                    <h3 className="font-heading text-white font-bold">{currentUser.name}</h3>
+                    <div className="flex items-center space-x-2">
+                      <h3 className="font-heading text-white font-bold">{currentUser.name}</h3>
+                      <span className={`px-2 py-0.5 rounded text-[10px] font-mono font-bold uppercase ${
+                        currentUser.role === "admin"
+                          ? "bg-emerald-950 text-emerald-400 border border-emerald-500/40"
+                          : "bg-white/10 text-gray-300"
+                      }`}>
+                        role: {currentUser.role}
+                      </span>
+                    </div>
                     <p className="text-xs font-mono text-gray-400">{currentUser.email} • Nível {currentUser.nxtLevel}</p>
                   </div>
                 </div>
                 <div className="pt-2 flex flex-col gap-2 font-mono text-xs">
+                  {currentUser.role === "admin" ? (
+                    <a
+                      href="/admin"
+                      className="w-full py-3 rounded-xl bg-gradient-to-r from-emerald-600 to-cyan-600 hover:brightness-110 text-white font-bold uppercase tracking-wider flex items-center justify-center space-x-2 shadow-[0_0_20px_rgba(16,185,129,0.5)] cursor-pointer hover:scale-[1.02] active:scale-[0.98] transition-all"
+                    >
+                      <ShieldCheck className="w-4 h-4" />
+                      <span>Acessar Painel de Admin (/admin)</span>
+                    </a>
+                  ) : (
+                    <a
+                      href="/admin"
+                      className="w-full py-2.5 rounded-xl bg-white/5 hover:bg-white/10 text-amber-300/80 hover:text-amber-300 border border-amber-500/20 flex items-center justify-center space-x-2 transition-all cursor-pointer"
+                    >
+                      <span>Testar Bloqueio de Admin (role = &apos;user&apos;)</span>
+                    </a>
+                  )}
                   <button
                     onClick={() => {
                       const el = document.getElementById("secao-pass");
                       el?.scrollIntoView({ behavior: "smooth" });
                     }}
-                    className="w-full py-3.5 rounded-xl bg-gradient-to-r from-purple-600 via-violet-600 to-cyan-500 text-white font-bold uppercase tracking-wider flex items-center justify-center space-x-2 shadow-[0_0_20px_rgba(139,92,246,0.6)] cursor-pointer hover:scale-[1.02] active:scale-[0.98] transition-all"
+                    className="w-full py-3 rounded-xl bg-gradient-to-r from-purple-600 via-violet-600 to-cyan-500 text-white font-bold uppercase tracking-wider flex items-center justify-center space-x-2 shadow-[0_0_20px_rgba(139,92,246,0.6)] cursor-pointer hover:scale-[1.02] active:scale-[0.98] transition-all"
                   >
                     <span>Explorar Benefícios do Meu Nível</span>
                     <ArrowRight className="w-4 h-4" />
@@ -537,21 +564,33 @@ export function ScrollytellingContainer() {
                 </div>
               </Card>
             ) : (
-              <div className="relative group/auth w-full max-w-md mx-auto">
+              <motion.div
+                initial={{ opacity: 0, y: 55, scale: 0.94, filter: "blur(8px)" }}
+                whileInView={{ opacity: 1, y: 0, scale: 1, filter: "blur(0px)" }}
+                viewport={{ once: false, amount: 0.3 }}
+                transition={{ duration: 0.9, ease: [0.16, 1, 0.3, 1] }}
+                className="relative group/auth w-full max-w-md mx-auto"
+              >
                 {/* Futuristic ambient neon bloom behind the card */}
                 <div className="gsap-auth-glow absolute -inset-2 rounded-[36px] bg-gradient-to-r from-purple-600/40 via-violet-600/30 to-cyan-500/40 blur-2xl -z-10 pointer-events-none" />
 
                 {/* Animated Entrance Auth Card */}
                 <div className="gsap-auth-card relative overflow-hidden rounded-[32px] bg-[#0A0D18]/90 backdrop-blur-3xl border border-white/10 shadow-[0_25px_70px_rgba(0,0,0,0.85)] p-7 sm:p-9 text-white w-full">
-                  {/* Header */}
-                  <div className="text-center space-y-1.5 mb-6">
-                    <h2 className="font-heading text-3xl sm:text-4xl font-extrabold tracking-tight text-white">
-                      NXTGEN
-                    </h2>
-                  <p className="text-xs sm:text-sm text-gray-400 font-sans">
-                    Seu ecossistema de benefícios aguarda
-                  </p>
-                </div>
+                  {/* Official Logo Header */}
+                  <div className="text-center space-y-2 mb-6">
+                    <div className="flex justify-center items-center">
+                      <Image
+                        src="/logonxtgen.png"
+                        alt="NXTGEN"
+                        width={220}
+                        height={60}
+                        className="h-12 sm:h-14 w-auto object-contain drop-shadow-[0_0_25px_rgba(139,92,246,0.6)]"
+                      />
+                    </div>
+                    <p className="text-xs sm:text-sm text-gray-400 font-sans">
+                      Seu ecossistema de benefícios aguarda
+                    </p>
+                  </div>
 
                 {authSuccessMsg && (
                   <div className="mb-4 p-3 rounded-xl bg-emerald-950/60 border border-emerald-500/40 text-emerald-300 text-xs font-mono flex items-center space-x-2">
@@ -720,7 +759,7 @@ export function ScrollytellingContainer() {
                   )}
                 </div>
               </div>
-            </div>
+            </motion.div>
             )}
           </div>
         </section>
@@ -736,9 +775,9 @@ export function ScrollytellingContainer() {
             <Image
               src="/logonxtgen.png"
               alt="NXTGEN"
-              width={200}
-              height={55}
-              className="h-10 md:h-12 w-auto object-contain opacity-90 hover:opacity-100 transition-opacity"
+              width={240}
+              height={70}
+              className="h-12 md:h-14 w-auto object-contain opacity-95 hover:opacity-100 hover:scale-105 transition-all drop-shadow-[0_0_20px_rgba(139,92,246,0.3)]"
             />
           </div>
           <div className="flex items-center space-x-6 text-gray-400">
