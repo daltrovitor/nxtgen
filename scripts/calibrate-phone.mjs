@@ -34,7 +34,8 @@ async function main() {
     { name: "05_gamify_title", ratio: 0.60, desc: "Section 3: Gamification Title" },
     { name: "06_gamify_xp", ratio: 0.72, desc: "Section 3: Gamification XP Card" },
     { name: "07_auth_top", ratio: 0.85, desc: "Section 4: Auth Header" },
-    { name: "08_auth_card", ratio: 0.98, desc: "Section 4: NexusGate Card" },
+    { name: "08_auth_card", ratio: 0.95, desc: "Section 4: NexusGate Card" },
+    { name: "09_bottom_stop", ratio: 1.0, desc: "Page Bottom & Footer Stop" },
   ];
 
   for (const cp of checkpoints) {

@@ -54,15 +54,16 @@ export function ScrollytellingContainer() {
 
   // Smooth spring physics for silky real-time scroll tracking
   const smoothProgress = useSpring(scrollYProgress, {
-    stiffness: 160,
-    damping: 28,
-    restDelta: 0.001,
+    stiffness: 80,
+    damping: 24,
+    mass: 0.7,
+    restDelta: 0.0005,
   });
 
   // =========================================================================
   // 3D PHONE MOTION TRANSFORMATIONS
-  // Continuous keyframes: 0% (Hero) -> 33% (Pass) -> 66% (Gamify) -> 100% (Auth)
-  // Follows the scroll seamlessly down the page!
+  // Calibrated across stages: Hero -> PASS -> Gamify -> Auth Card Stop
+  // Descends along scroll and stops higher up (y = -25) to align with Auth Card
   // =========================================================================
   const rotateXDesktop = useTransform(
     smoothProgress,
@@ -93,7 +94,7 @@ export function ScrollytellingContainer() {
   const yDesktop = useTransform(
     smoothProgress,
     [0, 0.22, 0.38, 0.52, 0.68, 0.85, 1],
-    [0, 35, 65, 95, 125, 155, 180]
+    [0, 35, 65, 75, 50, 0, -50]
   );
 
   // Mobile responsive transforms: compact 0.52 scale, docked at top, tilts with scroll
@@ -104,7 +105,7 @@ export function ScrollytellingContainer() {
   const yMobile = useTransform(
     smoothProgress,
     [0, 0.33, 0.66, 1],
-    [-220, -170, -120, -80]
+    [-220, -170, -130, -160]
   );
   const scaleMobile = useTransform(smoothProgress, [0, 1], [0.52, 0.52]);
 
@@ -130,12 +131,13 @@ export function ScrollytellingContainer() {
   // Smooth scroll via Lenis + GSAP ScrollTrigger synchronization
   useEffect(() => {
     const lenis = new Lenis({
-      duration: 1.2,
+      duration: 1.5,
       easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
       orientation: "vertical",
       gestureOrientation: "vertical",
       smoothWheel: true,
-      wheelMultiplier: 1,
+      wheelMultiplier: 0.85,
+      touchMultiplier: 1.5,
     });
 
     lenis.on("scroll", ScrollTrigger.update);
@@ -206,10 +208,10 @@ export function ScrollytellingContainer() {
         }
       );
 
-      // Section 4: Auth reveal
+      // Section 4: Auth Header reveal
       gsap.fromTo(
-        ".gsap-auth-reveal",
-        { opacity: 0, y: 30 },
+        ".gsap-auth-header",
+        { opacity: 0, y: 25 },
         {
           opacity: 1,
           y: 0,
@@ -218,6 +220,47 @@ export function ScrollytellingContainer() {
           scrollTrigger: {
             trigger: "#secao-login",
             start: "top 85%",
+            toggleActions: "play none none reverse",
+          },
+        }
+      );
+
+      // Section 4: Auth Card Entrance Animation (smooth float-up, de-blur, and 3D scale)
+      gsap.fromTo(
+        ".gsap-auth-card",
+        {
+          opacity: 0,
+          y: 65,
+          scale: 0.92,
+          filter: "blur(10px)",
+        },
+        {
+          opacity: 1,
+          y: 0,
+          scale: 1,
+          filter: "blur(0px)",
+          duration: 1.2,
+          ease: "power3.out",
+          scrollTrigger: {
+            trigger: "#secao-login",
+            start: "top 80%",
+            toggleActions: "play none none reverse",
+          },
+        }
+      );
+
+      // Section 4: Neon Ambient Glow bloom
+      gsap.fromTo(
+        ".gsap-auth-glow",
+        { opacity: 0, scale: 0.8 },
+        {
+          opacity: 0.85,
+          scale: 1,
+          duration: 1.4,
+          ease: "power2.out",
+          scrollTrigger: {
+            trigger: "#secao-login",
+            start: "top 80%",
             toggleActions: "play none none reverse",
           },
         }
@@ -450,8 +493,8 @@ export function ScrollytellingContainer() {
           id="secao-login"
           className="min-h-[135vh] flex flex-col justify-end pb-12 sm:justify-center items-end px-4 sm:px-12 max-w-7xl mx-auto py-36 pointer-events-none"
         >
-          <div className="gsap-auth-reveal max-w-md w-full pointer-events-auto space-y-6">
-            <div className="space-y-2">
+          <div className="max-w-md w-full pointer-events-auto space-y-6">
+            <div className="gsap-auth-header space-y-2">
               <p className="text-xs font-mono uppercase tracking-[0.25em] text-purple-400 font-semibold">
                 Acesso à Plataforma
               </p>
@@ -494,12 +537,17 @@ export function ScrollytellingContainer() {
                 </div>
               </Card>
             ) : (
-              <div className="relative overflow-hidden rounded-[32px] bg-[#0A0D18]/85 backdrop-blur-3xl border border-white/10 shadow-[0_25px_70px_rgba(0,0,0,0.85)] p-7 sm:p-9 text-white w-full max-w-md mx-auto">
-                {/* Header */}
-                <div className="text-center space-y-1.5 mb-6">
-                  <h2 className="font-heading text-3xl sm:text-4xl font-extrabold tracking-tight text-white">
-                    NXTGEN
-                  </h2>
+              <div className="relative group/auth w-full max-w-md mx-auto">
+                {/* Futuristic ambient neon bloom behind the card */}
+                <div className="gsap-auth-glow absolute -inset-2 rounded-[36px] bg-gradient-to-r from-purple-600/40 via-violet-600/30 to-cyan-500/40 blur-2xl -z-10 pointer-events-none" />
+
+                {/* Animated Entrance Auth Card */}
+                <div className="gsap-auth-card relative overflow-hidden rounded-[32px] bg-[#0A0D18]/90 backdrop-blur-3xl border border-white/10 shadow-[0_25px_70px_rgba(0,0,0,0.85)] p-7 sm:p-9 text-white w-full">
+                  {/* Header */}
+                  <div className="text-center space-y-1.5 mb-6">
+                    <h2 className="font-heading text-3xl sm:text-4xl font-extrabold tracking-tight text-white">
+                      NXTGEN
+                    </h2>
                   <p className="text-xs sm:text-sm text-gray-400 font-sans">
                     Seu ecossistema de benefícios aguarda
                   </p>
@@ -672,6 +720,7 @@ export function ScrollytellingContainer() {
                   )}
                 </div>
               </div>
+            </div>
             )}
           </div>
         </section>

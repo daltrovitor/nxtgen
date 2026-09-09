@@ -72,7 +72,7 @@
   *,
   *::before,
   *::after {
-    cursor: url("/cursor-normal.png"), default !important;
+    cursor: url("/cursor-normalnxt.png") 0 0, default !important;
   }
   html,
   body {
@@ -80,7 +80,7 @@
     color: var(--foreground);
     overflow-x: clip;
     font-feature-settings: "cv02", "cv03", "cv04", "cv11";
-    cursor: url("/cursor-normal.png"), default !important;
+    cursor: url("/cursor-normalnxt.png") 0 0, default !important;
   }
 
   a,
@@ -103,7 +103,7 @@
   [role="switch"] *,
   .cursor-pointer,
   .cursor-pointer * {
-    cursor: url("/cursor-pointer.png"), pointer !important;
+    cursor: url("/cursor-pointernxt.png") 13 0, pointer !important;
   }
 }
 
