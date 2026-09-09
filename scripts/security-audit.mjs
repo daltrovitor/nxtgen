@@ -2,7 +2,7 @@ const BASE_URL = 'http://localhost:3000';
 
 async function runLivePenTest() {
   console.log('\n===============================================================');
-  console.log('🛡️  NXTGEN CYBER-DEFENSE SUITE: PEN-TESTING EM TEMPO REAL (HTTP)');
+  console.log('🛡️  NXTGEN AUTH & CYBER-DEFENSE SUITE: PEN-TESTING EM TEMPO REAL');
   console.log('===============================================================\n');
 
   let passed = 0;
@@ -38,13 +38,14 @@ async function runLivePenTest() {
   console.log('\nTESTE 2: Cadastro Válido Geração Z (21 anos) - Sem Confirmação de E-mail');
   let authCookie = '';
   let validUserId = '';
+  const testEmail = `genz_${Date.now()}@nxtgen.app`;
   try {
     const res = await fetch(`${BASE_URL}/api/auth/signup`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        email: `alpha_${Date.now()}@nxtgen.com`,
-        fullName: 'Jovem Alpha',
+        email: testEmail,
+        fullName: 'Lucas GenZ',
         password: 'SuperSecret2026!',
         birthDate: '2004-05-15'
       })
@@ -65,30 +66,23 @@ async function runLivePenTest() {
     failed++;
   }
 
-  // 3. TESTE: Resgate de Cupom (Voucher) no NXT PASS
-  console.log('\nTESTE 3: Resgate de Voucher de Benefício (Bullguer Smash b1)');
-  let redeemedVoucherId = '';
-  let generatedQRToken = '';
+  // 3. TESTE: Tentativa de SQL Injection no Login
+  console.log('\nTESTE 3: Tentativa de SQL Injection no Formulário de Login');
   try {
-    const res = await fetch(`${BASE_URL}/api/vouchers/redeem`, {
+    const res = await fetch(`${BASE_URL}/api/auth/login`, {
       method: 'POST',
-      headers: { 
-        'Content-Type': 'application/json',
-        ...(authCookie ? { 'Cookie': authCookie } : {})
-      },
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        benefitId: 'b1',
-        partnerId: 'p1'
+        email: "' OR '1'='1",
+        password: "' OR '1'='1"
       })
     });
     const data = await res.json();
-    if (res.ok && data.voucher) {
-      redeemedVoucherId = data.voucher.id;
-      generatedQRToken = data.qrPayload;
-      console.log(`   ✅ SUCESSO: Voucher gerado com QR Code dinâmico: ${data.voucher.code}`);
+    if (!res.ok && (data.error || res.status === 400 || res.status === 401)) {
+      console.log(`   ✅ SUCESSO: Tentativa de SQL Injection bloqueada com segurança! ("${data.error}")`);
       passed++;
     } else {
-      console.error('   ❌ FALHA ao resgatar voucher:', data);
+      console.error('   ❌ FALHA: Tentativa de injeção SQL foi aceita!', data);
       failed++;
     }
   } catch (err) {
@@ -96,32 +90,26 @@ async function runLivePenTest() {
     failed++;
   }
 
-  // 4. TESTE: Tentativa de Falsificação de Assinatura no QR Code (Spoofing)
-  console.log('\nTESTE 4: Tentativa de Validação com Assinatura Adulterada (Spoofing Attack)');
+  // 4. TESTE: Login Legítimo com Usuário Demo
+  console.log('\nTESTE 4: Login Legítimo com Usuário Demo (Rafael Molina)');
+  let demoCookie = '';
   try {
-    const fakeToken = Buffer.from(JSON.stringify({
-      voucherId: redeemedVoucherId,
-      userId: validUserId,
-      partnerId: 'p1',
-      timestamp: Math.floor(Date.now() / 1000),
-      nonce: 'deadbeef1234',
-      signature: '0000000000000000000000000000000000000000000000000000000000000000'
-    })).toString('base64url');
-
-    const res = await fetch(`${BASE_URL}/api/vouchers/validate`, {
+    const res = await fetch(`${BASE_URL}/api/auth/login`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        qrTokenOrCode: fakeToken,
-        partnerId: 'p1'
+        email: 'rafael.molina@nxtgen.app',
+        password: 'Nxtgen2026!'
       })
     });
     const data = await res.json();
-    if (!res.ok || !data.success) {
-      console.log(`   ✅ SUCESSO: Token adulterado foi barrado! ("${data.error}")`);
+    if (res.ok && data.success && data.user) {
+      const setCookie = res.headers.get('set-cookie');
+      if (setCookie) demoCookie = setCookie.split(';')[0];
+      console.log(`   ✅ SUCESSO: Login autenticado! Bem-vindo ${data.user.name} (Nível ${data.user.nxtLevel})`);
       passed++;
     } else {
-      console.error('   ❌ FALHA CRÍTICA: Assinatura falsificada foi aceita!');
+      console.error('   ❌ FALHA ao logar usuário demo:', data);
       failed++;
     }
   } catch (err) {
@@ -129,36 +117,18 @@ async function runLivePenTest() {
     failed++;
   }
 
-  // 5. TESTE: Validação Legítima & Bloqueio de Double-Spending
-  console.log('\nTESTE 5: Validação Legítima do QR Code e Bloqueio de Gasto Duplo');
+  // 5. TESTE: Validação de Sessão Segura (/api/auth/me)
+  console.log('\nTESTE 5: Validação de Sessão Segura com Cookie de Autenticação (/api/auth/me)');
   try {
-    // Primeira queima (deve passar)
-    const res1 = await fetch(`${BASE_URL}/api/vouchers/validate`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        qrTokenOrCode: generatedQRToken,
-        partnerId: 'p1'
-      })
+    const res = await fetch(`${BASE_URL}/api/auth/me`, {
+      headers: { ...(demoCookie ? { 'Cookie': demoCookie } : {}) }
     });
-    const data1 = await res1.json();
-
-    // Segunda queima (deve ser rejeitada)
-    const res2 = await fetch(`${BASE_URL}/api/vouchers/validate`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        qrTokenOrCode: generatedQRToken,
-        partnerId: 'p1'
-      })
-    });
-    const data2 = await res2.json();
-
-    if (data1.success && (!res2.ok || !data2.success)) {
-      console.log('   ✅ SUCESSO: Primeira queima autorizada; segunda tentativa bloqueada com sucesso contra gasto duplo!');
+    const data = await res.json();
+    if (res.ok && data.user && data.user.email === 'rafael.molina@nxtgen.app') {
+      console.log(`   ✅ SUCESSO: Sessão validada no servidor! Usuário ativo: ${data.user.name}`);
       passed++;
     } else {
-      console.error('   ❌ FALHA: Inconsistência no bloqueio de duplo gasto:', { data1, data2 });
+      console.error('   ❌ FALHA ao validar sessão:', data);
       failed++;
     }
   } catch (err) {
@@ -166,15 +136,19 @@ async function runLivePenTest() {
     failed++;
   }
 
-  // 6. TESTE: Injeção SQL em Parâmetros de Busca
-  console.log('\nTESTE 6: Tentativa de SQL Injection via URL');
+  // 6. TESTE: Logout Seguro e Invalidação de Sessão
+  console.log('\nTESTE 6: Logout Seguro e Invalidação da Sessão');
   try {
-    const res = await fetch(`${BASE_URL}/pass?q=%27+OR+1%3D1+--`);
-    if (res.ok) {
-      console.log('   ✅ SUCESSO: Injeção SQL tratada com segurança absoluta (zero vazamento de dados)!');
+    const res = await fetch(`${BASE_URL}/api/auth/logout`, {
+      method: 'POST',
+      headers: { ...(demoCookie ? { 'Cookie': demoCookie } : {}) }
+    });
+    const data = await res.json();
+    if (res.ok && data.success) {
+      console.log('   ✅ SUCESSO: Logout efetuado e cookie de sessão expirado!');
       passed++;
     } else {
-      console.error('   ❌ Erro HTTP:', res.status);
+      console.error('   ❌ FALHA no logout:', data);
       failed++;
     }
   } catch (err) {

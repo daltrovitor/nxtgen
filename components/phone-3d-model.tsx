@@ -563,7 +563,7 @@ export function Phone3DModel({
     const height = container.clientHeight || 800;
 
     const camera = new THREE.PerspectiveCamera(40, width / height, 0.1, 100);
-    camera.position.set(0, 0, 9.8);
+    camera.position.set(0, 0, 13.5);
 
     const renderer = new THREE.WebGLRenderer({
       alpha: true,
@@ -936,20 +936,10 @@ export function Phone3DModel({
 
   return (
     <div className={className}>
-      {/* Background Multi-layer Ambient Backlight (Glow Purple & Glow Cyan) */}
-      <div
-        className="absolute -inset-4 rounded-[60px] bg-gradient-to-tr from-purple-600/35 via-violet-500/25 to-cyan-400/30 blur-2xl -z-10 transition-opacity duration-700 pointer-events-none"
-        style={{ opacity: glowIntensity }}
-      />
-      <div
-        className="absolute -inset-10 rounded-[80px] bg-purple-600/18 blur-3xl -z-20 pointer-events-none animate-pulse"
-        style={{ animationDuration: "6s" }}
-      />
-
       {/* WebGL 3D Canvas Mount Point */}
       <div
         ref={mountRef}
-        className="w-[350px] sm:w-[420px] h-[700px] sm:h-[820px] flex items-center justify-center pointer-events-auto cursor-grab active:cursor-grabbing select-none touch-none"
+        className="w-[270px] sm:w-[320px] md:w-[350px] h-[540px] sm:h-[640px] md:h-[700px] flex items-center justify-center pointer-events-auto cursor-grab active:cursor-grabbing select-none touch-none"
       />
     </div>
   );

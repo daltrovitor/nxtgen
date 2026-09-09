@@ -27,7 +27,7 @@ export default function SignupPage() {
       setError(null);
       const res = await signup(fullName, email, password);
       if (res.success) {
-        router.push("/pass");
+        router.push("/");
       } else {
         setError(res.error || "Erro ao registrar conta.");
       }

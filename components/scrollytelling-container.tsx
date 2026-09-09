@@ -52,45 +52,47 @@ export function ScrollytellingContainer() {
 
   // =========================================================================
   // 3D PHONE MOTION TRANSFORMATIONS
-  // Keyframes: 0% -> 25% -> 55% -> 80% -> 100%
+  // Continuous keyframes: 0% (Hero) -> 33% (Pass) -> 66% (Gamify) -> 100% (Auth)
+  // Starts moving immediately from scroll progress 0!
+  // Compact, responsive scale (~40% smaller footprint)
   // =========================================================================
   const rotateXDesktop = useTransform(
     smoothProgress,
-    [0, 0.2, 0.45, 0.75, 1],
-    [14, 14, 8, 14, 2]
+    [0, 0.33, 0.66, 1],
+    [10, 6, 8, 0]
   );
   const rotateYDesktop = useTransform(
     smoothProgress,
-    [0, 0.2, 0.45, 0.75, 1],
-    [-18, -18, -34, 32, -8]
+    [0, 0.33, 0.66, 1],
+    [-14, -28, 26, -6]
   );
   const rotateZDesktop = useTransform(
     smoothProgress,
-    [0, 0.2, 0.45, 0.75, 1],
-    [5, 5, -5, 6, 0]
+    [0, 0.33, 0.66, 1],
+    [3, -3, 4, 0]
   );
   const xDesktop = useTransform(
     smoothProgress,
-    [0, 0.2, 0.45, 0.75, 1],
-    [220, 220, 330, -330, -270]
+    [0, 0.33, 0.66, 1],
+    [160, 250, -250, -210]
   );
   const scaleDesktop = useTransform(
     smoothProgress,
-    [0, 0.2, 0.45, 0.75, 1],
-    [1.0, 1.0, 1.08, 1.08, 0.98]
+    [0, 0.33, 0.66, 1],
+    [0.76, 0.80, 0.80, 0.75]
   );
 
-  // Mobile clamped transforms: dynamic tilts and dock positioning
-  const rotateXMobile = useTransform(smoothProgress, [0, 0.35, 0.7, 1], [10, -6, 8, 2]);
-  const rotateYMobile = useTransform(smoothProgress, [0, 0.35, 0.7, 1], [-14, 18, -14, 0]);
-  const rotateZMobile = useTransform(smoothProgress, [0, 0.35, 0.7, 1], [3, -3, 3, 0]);
+  // Mobile responsive transforms: compact 0.48 scale, docked at top, tilts with scroll
+  const rotateXMobile = useTransform(smoothProgress, [0, 0.33, 0.66, 1], [6, -4, 6, 0]);
+  const rotateYMobile = useTransform(smoothProgress, [0, 0.33, 0.66, 1], [-8, 12, -10, 0]);
+  const rotateZMobile = useTransform(smoothProgress, [0, 0.33, 0.66, 1], [2, -2, 2, 0]);
   const xMobile = useTransform(smoothProgress, [0, 1], [0, 0]);
   const yMobile = useTransform(
     smoothProgress,
-    [0, 0.25, 0.55, 0.8, 1],
-    [-185, -165, -165, -175, -200]
+    [0, 0.33, 0.66, 1],
+    [-170, -150, -155, -180]
   );
-  const scaleMobile = useTransform(smoothProgress, [0, 1], [0.55, 0.55]);
+  const scaleMobile = useTransform(smoothProgress, [0, 1], [0.48, 0.48]);
 
   const rotateX = isMobile ? rotateXMobile : rotateXDesktop;
   const rotateY = isMobile ? rotateYMobile : rotateYDesktop;
@@ -99,17 +101,14 @@ export function ScrollytellingContainer() {
   const y = isMobile ? yMobile : undefined;
   const scale = isMobile ? scaleMobile : scaleDesktop;
 
-  // Pure black start: ambient radial and tech grid fade in as scroll begins
-  const ambientGlowOpacity = useTransform(smoothProgress, [0, 0.12], [0, 1]);
-
   // Track dynamic state on phone screen based on scroll range
   const [currentSection, setCurrentSection] = useState(0);
 
   useEffect(() => {
     return smoothProgress.on("change", (latest) => {
-      if (latest < 0.25) setCurrentSection(0);
-      else if (latest < 0.55) setCurrentSection(1);
-      else if (latest < 0.8) setCurrentSection(2);
+      if (latest < 0.22) setCurrentSection(0);
+      else if (latest < 0.50) setCurrentSection(1);
+      else if (latest < 0.78) setCurrentSection(2);
       else setCurrentSection(3);
     });
   }, [smoothProgress]);
@@ -239,20 +238,14 @@ export function ScrollytellingContainer() {
       if (authTab === "login") {
         const res = await login(authEmail, authPass);
         if (res.success) {
-          setAuthSuccessMsg("Login realizado com sucesso! Redirecionando...");
-          setTimeout(() => {
-            router.push("/pass");
-          }, 700);
+          setAuthSuccessMsg("Login realizado com sucesso! Bem-vindo ao NXTGEN.");
         } else {
           setAuthErrorMsg(res.error || "Credenciais incorretas. Verifique seu e-mail e senha.");
         }
       } else {
         const res = await signup(authName, authEmail, authPass);
         if (res.success) {
-          setAuthSuccessMsg("Conta criada com sucesso! Redirecionando...");
-          setTimeout(() => {
-            router.push("/pass");
-          }, 700);
+          setAuthSuccessMsg("Conta criada com sucesso! Bem-vindo ao NXTGEN.");
         } else {
           setAuthErrorMsg(res.error || "Não foi possível criar a conta.");
         }
@@ -266,12 +259,6 @@ export function ScrollytellingContainer() {
 
   return (
     <div ref={containerRef} className="relative w-full bg-[#000000] text-[#F3F4F6]">
-      
-      {/* Ambient Radial Background & Technical Grid (fades in as user scrolls) */}
-      <motion.div
-        style={{ opacity: ambientGlowOpacity }}
-        className="fixed inset-0 bg-tech-grid bg-radial-gradient pointer-events-none -z-10"
-      />
 
       {/* =========================================================================
           STICKY 3D PHONE VIEWPORT
@@ -473,10 +460,13 @@ export function ScrollytellingContainer() {
                 </div>
                 <div className="pt-2 flex flex-col gap-2 font-mono text-xs">
                   <button
-                    onClick={() => router.push("/pass")}
+                    onClick={() => {
+                      const el = document.getElementById("secao-pass");
+                      el?.scrollIntoView({ behavior: "smooth" });
+                    }}
                     className="w-full py-3.5 rounded-xl bg-gradient-to-r from-purple-600 via-violet-600 to-cyan-500 text-white font-bold uppercase tracking-wider flex items-center justify-center space-x-2 shadow-[0_0_20px_rgba(139,92,246,0.6)] cursor-pointer hover:scale-[1.02] active:scale-[0.98] transition-all"
                   >
-                    <span>Abrir Carteira de Benefícios</span>
+                    <span>Explorar Benefícios do Meu Nível</span>
                     <ArrowRight className="w-4 h-4" />
                   </button>
                   <button
@@ -605,7 +595,7 @@ export function ScrollytellingContainer() {
       {/* =========================================================================
           FOOTER COM LOGO OFICIAL
       ========================================================================= */}
-      <footer className="border-t border-white/10 py-8 px-6 sm:px-12 bg-[#050608] text-xs font-mono text-gray-500">
+      <footer className="border-t border-white/10 py-8 px-6 sm:px-12 bg-[#000000] text-xs font-mono text-gray-500">
         <div className="max-w-7xl mx-auto flex flex-col sm:flex-row justify-between items-center gap-4">
           <div className="flex items-center space-x-3">
             <Image
@@ -617,8 +607,8 @@ export function ScrollytellingContainer() {
             />
           </div>
           <div className="flex items-center space-x-6 text-gray-400">
-            <a href="/pass" className="hover:text-white transition-colors">NXT PASS</a>
-            <a href="/validador" className="hover:text-white transition-colors">Validador</a>
+            <a href="#secao-pass" className="hover:text-white transition-colors">NXT PASS</a>
+            <a href="#secao-gamificacao" className="hover:text-white transition-colors">Evolução</a>
             <a href="#secao-login" className="hover:text-white transition-colors">Entrar</a>
           </div>
           <div className="text-gray-600">
