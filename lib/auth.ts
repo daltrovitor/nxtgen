@@ -149,7 +149,7 @@ export function verifySessionToken(token: string): { valid: boolean; payload?: a
  */
 export async function getCurrentUser(): Promise<StoredUser | null> {
   try {
-    const cookieStore = cookies();
+    const cookieStore = await cookies();
     const token = cookieStore.get(AUTH_COOKIE_NAME)?.value;
     if (!token) return null;
 

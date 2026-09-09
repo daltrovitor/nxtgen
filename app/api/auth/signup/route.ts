@@ -16,7 +16,7 @@ export async function POST(req: NextRequest) {
     const parseResult = SignupSchema.safeParse(body);
     if (!parseResult.success) {
       return NextResponse.json(
-        { error: parseResult.error.errors[0].message },
+        { error: parseResult.error.issues[0]?.message || "Dados inválidos." },
         { status: 400 }
       );
     }

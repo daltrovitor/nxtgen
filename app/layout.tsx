@@ -1,29 +1,28 @@
 import type { Metadata, Viewport } from "next";
-import { Space_Grotesk, Plus_Jakarta_Sans, JetBrains_Mono } from "next/font/google";
-import { AuthProvider } from "@/hooks/use-auth";
+import { Inter, Space_Grotesk, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
+import { cn } from "@/lib/utils";
+
+const inter = Inter({
+  subsets: ["latin"],
+  variable: "--font-sans",
+});
 
 const spaceGrotesk = Space_Grotesk({
   subsets: ["latin"],
-  variable: "--font-display",
+  variable: "--font-heading",
   weight: ["500", "600", "700"],
-});
-
-const jakarta = Plus_Jakarta_Sans({
-  subsets: ["latin"],
-  variable: "--font-sans",
-  weight: ["400", "500", "600", "700"],
 });
 
 const jetbrainsMono = JetBrains_Mono({
   subsets: ["latin"],
   variable: "--font-mono",
-  weight: ["400", "600", "700"],
+  weight: ["400", "500", "700"],
 });
 
 export const metadata: Metadata = {
-  title: "NXTGEN • Build. Don't Bet.",
-  description: "O ecossistema de benefícios, fintech e comunidade desenhado para as Gerações Alpha e Z.",
+  title: "NXTGEN • The Future Pays More | Build. Don't Bet.",
+  description: "Ecossistema financeiro, de benefícios e experiências para as Gerações Alpha e Z. Substituímos a monetização de impulsos por recompensas reais.",
   manifest: "/manifest.json",
   appleWebApp: {
     capable: true,
@@ -37,8 +36,10 @@ export const viewport: Viewport = {
   initialScale: 1,
   maximumScale: 1,
   userScalable: false,
-  themeColor: "#08080a",
+  themeColor: "#08090C",
 };
+
+import { AuthProvider } from "@/hooks/use-auth";
 
 export default function RootLayout({
   children,
@@ -46,8 +47,16 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="pt-BR" className={`dark ${spaceGrotesk.variable} ${jakarta.variable} ${jetbrainsMono.variable}`}>
-      <body className="min-h-screen bg-[#08080a] text-[#ededef] font-sans antialiased selection:bg-white selection:text-black">
+    <html
+      lang="pt-BR"
+      className={cn(
+        "dark h-full antialiased",
+        inter.variable,
+        spaceGrotesk.variable,
+        jetbrainsMono.variable
+      )}
+    >
+      <body className="min-h-full flex flex-col bg-[#08090C] text-[#F3F4F6]">
         <AuthProvider>
           {children}
         </AuthProvider>

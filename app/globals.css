@@ -1,67 +1,130 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-sans);
+  --font-mono: var(--font-geist-mono);
+  --font-heading: var(--font-sans);
+  --color-sidebar-ring: var(--sidebar-ring);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar: var(--sidebar);
+  --color-ring: var(--ring);
+  --color-input: var(--input);
+  --color-border: var(--border);
+  --color-destructive: var(--destructive);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-accent: var(--accent);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-muted: var(--muted);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-secondary: var(--secondary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary: var(--primary);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-popover: var(--popover);
+  --color-card-foreground: var(--card-foreground);
+  --color-card: var(--card);
+  --radius-sm: calc(var(--radius) * 0.6);
+  --radius-md: calc(var(--radius) * 0.8);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) * 1.4);
+  --radius-2xl: calc(var(--radius) * 1.8);
+  --radius-3xl: calc(var(--radius) * 2.2);
+  --radius-4xl: calc(var(--radius) * 2.6);
+}
 
 :root {
-  --background: #0a0b10;
-  --foreground: #f3f4f6;
+  --background: #08090C;
+  --foreground: #F3F4F6;
+  --card: #0F121A;
+  --card-foreground: #F3F4F6;
+  --popover: #0F121A;
+  --popover-foreground: #F3F4F6;
+  --primary: #8B5CF6;
+  --primary-foreground: #FFFFFF;
+  --secondary: #161B26;
+  --secondary-foreground: #EDEDEF;
+  --muted: #1A202C;
+  --muted-foreground: #94A3B8;
+  --accent: #00F0FF;
+  --accent-foreground: #08090C;
+  --destructive: #EF4444;
+  --border: rgba(255, 255, 255, 0.08);
+  --input: rgba(255, 255, 255, 0.12);
+  --ring: #8B5CF6;
+  --radius: 0.75rem;
 }
 
-body {
-  color: var(--foreground);
-  background: var(--background);
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-  overflow-x: hidden;
-  -webkit-font-smoothing: antialiased;
+@layer base {
+  * {
+    border-color: var(--border);
+  }
+  body {
+    background-color: var(--background);
+    color: var(--foreground);
+    overflow-x: hidden;
+    font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+  }
 }
 
-/* Custom Cyber / Dark-Tech Scrollbar */
-::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+/* 3D Perspective & GPU Acceleration */
+.perspective-1200 {
+  perspective: 1200px;
 }
 
-::-webkit-scrollbar-track {
-  background: #0d0f17;
+.preserve-3d {
+  transform-style: preserve-3d;
 }
 
-::-webkit-scrollbar-thumb {
-  background: #242938;
-  border-radius: 9999px;
+.backface-hidden {
+  backface-visibility: hidden;
 }
 
-::-webkit-scrollbar-thumb:hover {
-  background: #6366f1;
+/* Custom Neon Glow Utilities */
+.glow-purple {
+  box-shadow: 0 0 50px -5px rgba(139, 92, 246, 0.35);
 }
 
-/* Neon glow animations */
-@keyframes pulse-glow {
+.glow-purple-lg {
+  box-shadow: 0 0 80px 10px rgba(139, 92, 246, 0.25);
+}
+
+.glow-cyan {
+  box-shadow: 0 0 45px -5px rgba(0, 240, 255, 0.35);
+}
+
+/* Subtle Technical Grid Background */
+.bg-tech-grid {
+  background-size: 40px 40px;
+  background-image: 
+    linear-gradient(to right, rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+}
+
+.bg-radial-gradient {
+  background: radial-gradient(circle at 50% 30%, rgba(139, 92, 246, 0.12) 0%, rgba(0, 240, 255, 0.05) 45%, transparent 70%);
+}
+
+/* Dynamic Island Animation */
+@keyframes island-pulse {
   0%, 100% {
-    opacity: 0.6;
     transform: scale(1);
   }
   50% {
-    opacity: 1;
-    transform: scale(1.03);
+    transform: scale(1.02);
   }
 }
 
-.animate-glow {
-  animation: pulse-glow 3s infinite ease-in-out;
-}
-
-/* Glassmorphic border */
-.glass-panel {
-  background: rgba(18, 20, 29, 0.75);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-}
-
-.glass-panel-glow {
-  background: rgba(18, 20, 29, 0.85);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  border: 1px solid rgba(99, 102, 241, 0.3);
-  box-shadow: 0 0 30px -10px rgba(99, 102, 241, 0.25);
+.animate-island-pulse {
+  animation: island-pulse 4s ease-in-out infinite;
 }
