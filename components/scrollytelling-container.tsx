@@ -66,34 +66,34 @@ export function ScrollytellingContainer() {
   // =========================================================================
   const rotateXDesktop = useTransform(
     smoothProgress,
-    [0, 0.33, 0.66, 1],
-    [10, 6, 8, 0]
+    [0, 0.22, 0.38, 0.52, 0.68, 0.85, 1],
+    [6, 8, 7, 8, 8, 6, 4]
   );
   const rotateYDesktop = useTransform(
     smoothProgress,
-    [0, 0.33, 0.66, 1],
-    [-14, -28, 26, -6]
+    [0, 0.22, 0.38, 0.52, 0.68, 0.85, 1],
+    [-16, -22, -20, 22, 22, 14, 12]
   );
   const rotateZDesktop = useTransform(
     smoothProgress,
-    [0, 0.33, 0.66, 1],
-    [3, -3, 4, 0]
+    [0, 0.22, 0.38, 0.52, 0.68, 0.85, 1],
+    [2, -1, -2, 3, 3, 1, 0]
   );
   const xDesktop = useTransform(
     smoothProgress,
-    [0, 0.33, 0.66, 1],
-    [175, 270, -270, -225]
+    [0, 0.22, 0.38, 0.52, 0.68, 0.85, 1],
+    [260, 275, 280, -280, -280, -275, -270]
   );
   const scaleDesktop = useTransform(
     smoothProgress,
-    [0, 0.33, 0.66, 1],
-    [0.88, 0.94, 0.94, 0.88]
+    [0, 0.22, 0.38, 0.52, 0.68, 0.85, 1],
+    [0.90, 0.92, 0.93, 0.93, 0.93, 0.91, 0.90]
   );
 
   const yDesktop = useTransform(
     smoothProgress,
-    [0, 0.33, 0.66, 1],
-    [-110, 10, 110, 50]
+    [0, 0.22, 0.38, 0.52, 0.68, 0.85, 1],
+    [0, 35, 65, 95, 125, 155, 180]
   );
 
   // Mobile responsive transforms: compact 0.52 scale, docked at top, tilts with scroll
@@ -104,7 +104,7 @@ export function ScrollytellingContainer() {
   const yMobile = useTransform(
     smoothProgress,
     [0, 0.33, 0.66, 1],
-    [-220, -150, -90, -120]
+    [-220, -170, -120, -80]
   );
   const scaleMobile = useTransform(smoothProgress, [0, 1], [0.52, 0.52]);
 
@@ -360,7 +360,7 @@ export function ScrollytellingContainer() {
         ----------------------------------------------------------------------- */}
         <section
           id="secao-pass"
-          className="min-h-screen flex flex-col justify-end pb-12 sm:justify-center px-4 sm:px-12 max-w-7xl mx-auto py-24 pointer-events-none"
+          className="min-h-[135vh] flex flex-col justify-end pb-12 sm:justify-center px-4 sm:px-12 max-w-7xl mx-auto py-36 pointer-events-none"
         >
           <div className="max-w-md lg:max-w-lg space-y-6 pointer-events-auto p-6 sm:p-0 rounded-3xl sm:rounded-none bg-[#08090C]/90 sm:bg-transparent backdrop-blur-xl sm:backdrop-blur-none border border-white/10 sm:border-none shadow-2xl sm:shadow-none">
             
@@ -403,7 +403,7 @@ export function ScrollytellingContainer() {
         ----------------------------------------------------------------------- */}
         <section
           id="secao-gamificacao"
-          className="min-h-screen flex flex-col justify-end pb-12 sm:justify-center items-end px-4 sm:px-12 max-w-7xl mx-auto py-24 pointer-events-none"
+          className="min-h-[135vh] flex flex-col justify-end pb-12 sm:justify-center items-end px-4 sm:px-12 max-w-7xl mx-auto py-36 pointer-events-none"
         >
           <div className="max-w-md lg:max-w-lg space-y-6 pointer-events-auto text-left pl-0 md:pl-6 p-6 sm:p-0 rounded-3xl sm:rounded-none bg-[#08090C]/90 sm:bg-transparent backdrop-blur-xl sm:backdrop-blur-none border border-white/10 sm:border-none shadow-2xl sm:shadow-none">
             
@@ -448,7 +448,7 @@ export function ScrollytellingContainer() {
         ----------------------------------------------------------------------- */}
         <section
           id="secao-login"
-          className="min-h-screen flex flex-col justify-end pb-12 sm:justify-center items-end px-4 sm:px-12 max-w-7xl mx-auto py-24 pointer-events-none"
+          className="min-h-[135vh] flex flex-col justify-end pb-12 sm:justify-center items-end px-4 sm:px-12 max-w-7xl mx-auto py-36 pointer-events-none"
         >
           <div className="gsap-auth-reveal max-w-md w-full pointer-events-auto space-y-6">
             <div className="space-y-2">
