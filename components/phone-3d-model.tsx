@@ -563,7 +563,7 @@ export function Phone3DModel({
     const height = container.clientHeight || 800;
 
     const camera = new THREE.PerspectiveCamera(40, width / height, 0.1, 100);
-    camera.position.set(0, 0, 13.5);
+    camera.position.set(0, 0, 11.2);
 
     const renderer = new THREE.WebGLRenderer({
       alpha: true,
@@ -573,25 +573,30 @@ export function Phone3DModel({
     renderer.setSize(width, height);
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
-    renderer.toneMappingExposure = 1.15;
+    renderer.toneMappingExposure = 1.25;
     container.appendChild(renderer.domElement);
 
-    // 2. Studio Lighting Rig
-    const ambientLight = new THREE.AmbientLight(0xffffff, 1.4);
+    // 2. Studio Lighting Rig (Sharp Titanium & Sapphire Specular Highlights)
+    const ambientLight = new THREE.AmbientLight(0xffffff, 1.5);
     scene.add(ambientLight);
 
     // Key Light (Cyan / Cool White specular edge)
-    const keyLight = new THREE.DirectionalLight(0xa5f3fc, 3.2);
+    const keyLight = new THREE.DirectionalLight(0xcffafe, 3.8);
     keyLight.position.set(6, 7, 8);
     scene.add(keyLight);
 
     // Rim Light (Neon Violet / Purple back-edge)
-    const rimLight = new THREE.DirectionalLight(0xc084fc, 4.0);
+    const rimLight = new THREE.DirectionalLight(0xc084fc, 4.4);
     rimLight.position.set(-7, -4, 6);
     scene.add(rimLight);
 
+    // Top Rim Light for Chamfered Edge Sheen
+    const topLight = new THREE.DirectionalLight(0xffffff, 2.6);
+    topLight.position.set(0, 9, 5);
+    scene.add(topLight);
+
     // Rear Light for Camera Module Highlights
-    const backLight = new THREE.DirectionalLight(0x818cf8, 2.5);
+    const backLight = new THREE.DirectionalLight(0x818cf8, 2.8);
     backLight.position.set(0, 5, -8);
     scene.add(backLight);
 
@@ -939,7 +944,7 @@ export function Phone3DModel({
       {/* WebGL 3D Canvas Mount Point */}
       <div
         ref={mountRef}
-        className="w-[270px] sm:w-[320px] md:w-[350px] h-[540px] sm:h-[640px] md:h-[700px] flex items-center justify-center pointer-events-auto cursor-grab active:cursor-grabbing select-none touch-none"
+        className="w-[310px] sm:w-[370px] md:w-[400px] h-[620px] sm:h-[720px] md:h-[780px] flex items-center justify-center pointer-events-auto cursor-grab active:cursor-grabbing select-none touch-none"
       />
     </div>
   );

@@ -69,11 +69,24 @@
   * {
     border-color: var(--border);
   }
+  html,
   body {
     background-color: #000000;
     color: var(--foreground);
     overflow-x: hidden;
     font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+    cursor: url("/cursor-normal.png") 4 2, auto !important;
+  }
+
+  a,
+  button,
+  input,
+  select,
+  textarea,
+  [role="button"],
+  .cursor-pointer,
+  .cursor-pointer * {
+    cursor: url("/cursor-pointer.png") 6 2, pointer !important;
   }
 }
 

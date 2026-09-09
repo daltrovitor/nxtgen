@@ -13,6 +13,14 @@ import {
   ArrowRight,
   AlertCircle,
   Loader2,
+  Lock,
+  Mail,
+  User,
+  Eye,
+  EyeOff,
+  ShieldCheck,
+  Sparkles,
+  CheckCircle2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -74,15 +82,15 @@ export function ScrollytellingContainer() {
   const xDesktop = useTransform(
     smoothProgress,
     [0, 0.33, 0.66, 1],
-    [160, 250, -250, -210]
+    [175, 270, -270, -225]
   );
   const scaleDesktop = useTransform(
     smoothProgress,
     [0, 0.33, 0.66, 1],
-    [0.76, 0.80, 0.80, 0.75]
+    [0.88, 0.94, 0.94, 0.88]
   );
 
-  // Mobile responsive transforms: compact 0.48 scale, docked at top, tilts with scroll
+  // Mobile responsive transforms: compact 0.52 scale, docked at top, tilts with scroll
   const rotateXMobile = useTransform(smoothProgress, [0, 0.33, 0.66, 1], [6, -4, 6, 0]);
   const rotateYMobile = useTransform(smoothProgress, [0, 0.33, 0.66, 1], [-8, 12, -10, 0]);
   const rotateZMobile = useTransform(smoothProgress, [0, 0.33, 0.66, 1], [2, -2, 2, 0]);
@@ -92,7 +100,7 @@ export function ScrollytellingContainer() {
     [0, 0.33, 0.66, 1],
     [-170, -150, -155, -180]
   );
-  const scaleMobile = useTransform(smoothProgress, [0, 1], [0.48, 0.48]);
+  const scaleMobile = useTransform(smoothProgress, [0, 1], [0.52, 0.52]);
 
   const rotateX = isMobile ? rotateXMobile : rotateXDesktop;
   const rotateY = isMobile ? rotateYMobile : rotateYDesktop;
@@ -224,6 +232,7 @@ export function ScrollytellingContainer() {
   const [authEmail, setAuthEmail] = useState("");
   const [authPass, setAuthPass] = useState("");
   const [authName, setAuthName] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [authLoading, setAuthLoading] = useState(false);
   const [authErrorMsg, setAuthErrorMsg] = useState("");
   const [authSuccessMsg, setAuthSuccessMsg] = useState("");
@@ -478,19 +487,22 @@ export function ScrollytellingContainer() {
                 </div>
               </Card>
             ) : (
-              <Card className="bg-[#0F121C]/90 border border-purple-500/30 backdrop-blur-xl shadow-2xl">
-                <CardHeader className="pb-4">
+              <Card className="relative overflow-hidden rounded-2xl bg-gradient-to-b from-[#0F111A]/95 via-[#0A0C13]/95 to-[#06070B]/95 border border-purple-500/30 backdrop-blur-2xl shadow-[0_0_50px_rgba(139,92,246,0.18)]">
+                {/* Top ambient hairline */}
+                <div className="absolute inset-x-0 top-0 h-[2px] bg-gradient-to-r from-transparent via-purple-500/80 to-transparent" />
+
+                <CardHeader className="pb-3 pt-6 px-6">
                   <Tabs value={authTab} onValueChange={(val) => setAuthTab(val as "login" | "signup")} className="w-full">
-                    <TabsList className="grid grid-cols-2 bg-black/50 border border-white/10 p-1 w-full">
+                    <TabsList className="grid grid-cols-2 bg-black/60 border border-white/10 p-1 rounded-xl w-full">
                       <TabsTrigger
                         value="login"
-                        className="text-xs font-mono font-bold data-[state=active]:bg-purple-600 data-[state=active]:text-white"
+                        className="text-xs font-mono font-bold tracking-wide rounded-lg data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-600 data-[state=active]:to-violet-600 data-[state=active]:text-white data-[state=active]:shadow-md transition-all cursor-pointer"
                       >
                         Entrar
                       </TabsTrigger>
                       <TabsTrigger
                         value="signup"
-                        className="text-xs font-mono font-bold data-[state=active]:bg-purple-600 data-[state=active]:text-white"
+                        className="text-xs font-mono font-bold tracking-wide rounded-lg data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-600 data-[state=active]:to-violet-600 data-[state=active]:text-white data-[state=active]:shadow-md transition-all cursor-pointer"
                       >
                         Criar Conta
                       </TabsTrigger>
@@ -498,10 +510,11 @@ export function ScrollytellingContainer() {
                   </Tabs>
                 </CardHeader>
 
-                <CardContent className="space-y-4">
+                <CardContent className="space-y-4 px-6 pb-6">
                   {authSuccessMsg && (
-                    <div className="p-3 rounded-xl bg-emerald-950/60 border border-emerald-500/40 text-emerald-300 text-xs font-mono">
-                      {authSuccessMsg}
+                    <div className="p-3 rounded-xl bg-emerald-950/60 border border-emerald-500/40 text-emerald-300 text-xs font-mono flex items-center space-x-2">
+                      <CheckCircle2 className="w-4 h-4 shrink-0 text-emerald-400" />
+                      <span>{authSuccessMsg}</span>
                     </div>
                   )}
 
@@ -514,63 +527,79 @@ export function ScrollytellingContainer() {
 
                   <form onSubmit={handleAuthSubmit} className="space-y-3.5">
                     {authTab === "signup" && (
-                      <div className="space-y-1">
-                        <label className="text-[11px] font-mono text-gray-300 uppercase">Nome Completo</label>
-                        <Input
-                          type="text"
-                          value={authName}
-                          onChange={(e) => setAuthName(e.target.value)}
-                          placeholder="Ex: Rafael Molina"
-                          required
-                          className="bg-black/60 border-white/10 text-white placeholder-gray-600 focus-visible:border-purple-500 font-sans"
-                        />
+                      <div className="space-y-1.5">
+                        <label className="text-[11px] font-mono text-gray-400 uppercase tracking-wider block">Nome Completo</label>
+                        <div className="relative">
+                          <User className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-purple-400/70" />
+                          <Input
+                            type="text"
+                            value={authName}
+                            onChange={(e) => setAuthName(e.target.value)}
+                            placeholder="Ex: Rafael Molina"
+                            required
+                            className="pl-10 pr-4 py-2.5 bg-black/50 border-white/10 text-white placeholder-gray-600 focus-visible:border-purple-500 focus-visible:ring-1 focus-visible:ring-purple-500/50 rounded-xl font-sans"
+                          />
+                        </div>
                       </div>
                     )}
 
-                    <div className="space-y-1">
-                      <label className="text-[11px] font-mono text-gray-300 uppercase">E-mail</label>
-                      <Input
-                        type="email"
-                        value={authEmail}
-                        onChange={(e) => setAuthEmail(e.target.value)}
-                        placeholder="rafael.molina@nxtgen.app"
-                        required
-                        className="bg-black/60 border-white/10 text-white placeholder-gray-600 focus-visible:border-purple-500 font-sans"
-                      />
+                    <div className="space-y-1.5">
+                      <label className="text-[11px] font-mono text-gray-400 uppercase tracking-wider block">E-mail</label>
+                      <div className="relative">
+                        <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-purple-400/70" />
+                        <Input
+                          type="email"
+                          value={authEmail}
+                          onChange={(e) => setAuthEmail(e.target.value)}
+                          placeholder="rafael.molina@nxtgen.app"
+                          required
+                          className="pl-10 pr-4 py-2.5 bg-black/50 border-white/10 text-white placeholder-gray-600 focus-visible:border-purple-500 focus-visible:ring-1 focus-visible:ring-purple-500/50 rounded-xl font-sans"
+                        />
+                      </div>
                     </div>
 
-                    <div className="space-y-1">
-                      <label className="text-[11px] font-mono text-gray-300 uppercase">Senha</label>
-                      <Input
-                        type="password"
-                        value={authPass}
-                        onChange={(e) => setAuthPass(e.target.value)}
-                        placeholder="••••••••••••"
-                        required
-                        className="bg-black/60 border-white/10 text-white placeholder-gray-600 focus-visible:border-purple-500 font-sans"
-                      />
+                    <div className="space-y-1.5">
+                      <label className="text-[11px] font-mono text-gray-400 uppercase tracking-wider block">Senha</label>
+                      <div className="relative">
+                        <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-purple-400/70" />
+                        <Input
+                          type={showPassword ? "text" : "password"}
+                          value={authPass}
+                          onChange={(e) => setAuthPass(e.target.value)}
+                          placeholder="••••••••••••"
+                          required
+                          className="pl-10 pr-10 py-2.5 bg-black/50 border-white/10 text-white placeholder-gray-600 focus-visible:border-purple-500 focus-visible:ring-1 focus-visible:ring-purple-500/50 rounded-xl font-sans"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setShowPassword(!showPassword)}
+                          className="absolute right-3.5 top-1/2 -translate-y-1/2 text-gray-500 hover:text-white transition-colors cursor-pointer"
+                        >
+                          {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                        </button>
+                      </div>
                     </div>
 
                     <Button
                       type="submit"
                       disabled={authLoading}
-                      className="w-full py-5 bg-gradient-to-r from-purple-600 via-violet-600 to-cyan-500 hover:from-purple-500 hover:to-cyan-400 text-white font-mono text-xs font-bold uppercase tracking-wider shadow-[0_0_20px_rgba(139,92,246,0.6)] cursor-pointer"
+                      className="w-full py-5 mt-2 bg-gradient-to-r from-purple-600 via-violet-600 to-cyan-500 hover:from-purple-500 hover:to-cyan-400 text-white font-mono text-xs font-bold uppercase tracking-wider rounded-xl shadow-[0_0_24px_rgba(139,92,246,0.45)] hover:shadow-[0_0_32px_rgba(139,92,246,0.7)] transition-all cursor-pointer"
                     >
                       {authLoading ? (
                         <span className="flex items-center space-x-2">
                           <Loader2 className="w-4 h-4 animate-spin mr-2" />
-                          Processando...
+                          Autenticando...
                         </span>
                       ) : authTab === "login" ? (
                         "Acessar Plataforma"
                       ) : (
-                        "Criar Conta"
+                        "Criar Conta Instantânea"
                       )}
                     </Button>
                   </form>
 
                   {/* Preencher Demo Limpo */}
-                  <div className="pt-2 border-t border-white/10 flex justify-end text-[11px] font-mono">
+                  <div className="pt-2 border-t border-white/10">
                     <button
                       type="button"
                       onClick={() => {
@@ -579,10 +608,20 @@ export function ScrollytellingContainer() {
                         setAuthPass("Nxtgen2026!");
                         setAuthErrorMsg("");
                       }}
-                      className="text-cyan-400 hover:underline cursor-pointer"
+                      className="w-full flex items-center justify-between p-2.5 rounded-xl border border-dashed border-cyan-500/30 bg-cyan-950/20 hover:bg-cyan-950/40 text-cyan-400 hover:text-cyan-300 font-mono text-[11px] transition-colors cursor-pointer"
                     >
-                      Preencher Demo
+                      <span className="flex items-center space-x-1.5">
+                        <Sparkles className="w-3.5 h-3.5" />
+                        <span>Preencher Conta Demo (Rafael Molina)</span>
+                      </span>
+                      <span className="text-[10px] uppercase font-bold text-cyan-500">Auto ⚡</span>
                     </button>
+                  </div>
+
+                  {/* Trust security badge */}
+                  <div className="pt-1 flex items-center justify-center space-x-2 text-[10px] font-mono text-gray-500">
+                    <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
+                    <span>Row Level Security (RLS) & Criptografia Ativa</span>
                   </div>
                 </CardContent>
               </Card>
