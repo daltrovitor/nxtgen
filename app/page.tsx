@@ -24,9 +24,13 @@ export default function HomePage() {
           </a>
           <a
             href="#secao-login"
-            className="px-4 py-2 rounded-xl bg-purple-600/30 hover:bg-purple-600/50 text-purple-300 border border-purple-500/40 font-semibold transition-all"
+            className="relative group px-5 py-2.5 rounded-xl bg-gradient-to-r from-purple-600/40 via-violet-600/40 to-cyan-500/30 hover:from-purple-600 hover:to-cyan-500 text-white border border-purple-500/50 font-semibold transition-all duration-300 shadow-[0_0_20px_rgba(139,92,246,0.35)] hover:shadow-[0_0_30px_rgba(139,92,246,0.7)] hover:scale-105 active:scale-95 cursor-pointer overflow-hidden"
           >
-            ENTRAR / CADASTRO
+            <span className="relative z-10 flex items-center space-x-2">
+              <span className="w-2 h-2 rounded-full bg-cyan-400 animate-pulse" />
+              <span>ENTRAR / CADASTRO</span>
+            </span>
+            <span className="absolute inset-0 -translate-x-full group-hover:translate-x-full transition-transform duration-700 bg-gradient-to-r from-transparent via-white/30 to-transparent pointer-events-none" />
           </a>
         </nav>
       </header>

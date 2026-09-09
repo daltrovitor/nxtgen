@@ -14,7 +14,6 @@ import {
   AlertCircle,
   Loader2,
   CheckCircle2,
-  Gamepad2,
 } from "lucide-react";
 
 export default function LoginPage() {
@@ -88,14 +87,6 @@ export default function LoginPage() {
             <p className="text-xs sm:text-sm text-gray-400 font-sans">
               Seu ecossistema financeiro aguarda
             </p>
-            <p className="text-[11px] font-mono text-gray-500">
-              [Pressione Enter para acessar o ecossistema]
-            </p>
-            <div className="flex items-center justify-center space-x-2.5 text-base pt-1">
-              <span>⚔️</span>
-              <span>🎮</span>
-              <span>🏆</span>
-            </div>
           </div>
 
           {/* Alerts */}
@@ -179,21 +170,27 @@ export default function LoginPage() {
             <button
               type="submit"
               disabled={loading || success}
-              className="w-full py-3.5 mt-1 bg-[#8B24F0] hover:bg-[#9d3df3] text-white font-bold text-sm rounded-xl shadow-[0_0_25px_rgba(139,36,240,0.5)] hover:shadow-[0_0_35px_rgba(139,36,240,0.7)] transition-all flex items-center justify-center space-x-2 cursor-pointer disabled:opacity-50"
+              className="relative overflow-hidden group w-full py-3.5 mt-1 bg-gradient-to-r from-[#8B24F0] via-[#9d3df3] to-[#8B24F0] hover:brightness-110 text-white font-bold text-sm rounded-xl shadow-[0_0_25px_rgba(139,36,240,0.55)] hover:shadow-[0_0_40px_rgba(139,36,240,0.9)] hover:scale-[1.01] active:scale-[0.98] transition-all flex items-center justify-center space-x-2 cursor-pointer disabled:opacity-50"
             >
-              {loading ? (
-                <>
-                  <Loader2 className="w-4 h-4 animate-spin" />
-                  <span>Validando Credenciais...</span>
-                </>
-              ) : success ? (
-                <>
-                  <CheckCircle2 className="w-4 h-4" />
-                  <span>Acesso Autorizado</span>
-                </>
-              ) : (
-                <span>Entrar no NXTGEN</span>
-              )}
+              <span className="absolute inset-0 w-full h-full bg-gradient-to-r from-transparent via-white/25 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000 ease-in-out pointer-events-none" />
+              <span className="relative z-10 flex items-center justify-center space-x-2">
+                {loading ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    <span>Validando Credenciais...</span>
+                  </>
+                ) : success ? (
+                  <>
+                    <CheckCircle2 className="w-4 h-4" />
+                    <span>Acesso Autorizado</span>
+                  </>
+                ) : (
+                  <>
+                    <span>Entrar no NXTGEN</span>
+                    <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                  </>
+                )}
+              </span>
             </button>
           </form>
 
@@ -206,39 +203,17 @@ export default function LoginPage() {
             <div className="flex-grow border-t border-white/10"></div>
           </div>
 
-          {/* Quick access buttons */}
-          <div className="grid grid-cols-3 gap-3">
-            {/* Google */}
-            <button
-              type="button"
-              className="p-3 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 flex items-center justify-center text-gray-300 hover:text-white transition-colors cursor-pointer group"
-              title="Acesso via Google"
-            >
-              <svg className="w-4 h-4 fill-current group-hover:scale-110 transition-transform" viewBox="0 0 24 24">
-                <path d="M12.24 10.285V13.4h6.887C18.2 16.14 15.645 18 12.24 18c-3.315 0-6-2.685-6-6s2.685-6 6-6c1.455 0 2.785.525 3.82 1.39l2.405-2.405C16.92 3.55 14.73 2.6 12.24 2.6 7.07 2.6 2.88 6.79 2.88 12s4.19 9.4 9.36 9.4c5.4 0 8.98-3.79 8.98-9.14 0-.61-.06-1.22-.17-1.975H12.24z" />
-              </svg>
-            </button>
-
-            {/* Twitter / X */}
-            <button
-              type="button"
-              className="p-3 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 flex items-center justify-center text-gray-300 hover:text-white transition-colors cursor-pointer group"
-              title="Acesso via X / Twitter"
-            >
-              <svg className="w-4 h-4 fill-current group-hover:scale-110 transition-transform" viewBox="0 0 24 24">
-                <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
-              </svg>
-            </button>
-
-            {/* Discord / Gaming */}
-            <button
-              type="button"
-              className="p-3 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 flex items-center justify-center text-gray-300 hover:text-white transition-colors cursor-pointer group"
-              title="Acesso via Gaming"
-            >
-              <Gamepad2 className="w-4 h-4 group-hover:scale-110 transition-transform" />
-            </button>
-          </div>
+          {/* Google Only */}
+          <button
+            type="button"
+            className="w-full py-3 px-4 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 hover:border-purple-500/40 flex items-center justify-center space-x-2.5 text-gray-200 hover:text-white transition-all cursor-pointer group shadow-sm"
+            title="Continuar com o Google"
+          >
+            <svg className="w-4 h-4 fill-current group-hover:scale-110 transition-transform" viewBox="0 0 24 24">
+              <path d="M12.24 10.285V13.4h6.887C18.2 16.14 15.645 18 12.24 18c-3.315 0-6-2.685-6-6s2.685-6 6-6c1.455 0 2.785.525 3.82 1.39l2.405-2.405C16.92 3.55 14.73 2.6 12.24 2.6 7.07 2.6 2.88 6.79 2.88 12s4.19 9.4 9.36 9.4c5.4 0 8.98-3.79 8.98-9.14 0-.61-.06-1.22-.17-1.975H12.24z" />
+            </svg>
+            <span className="text-xs font-semibold font-sans">Continuar com o Google</span>
+          </button>
 
           {/* Footer mode switch */}
           <div className="text-center text-xs text-gray-400 pt-5">
