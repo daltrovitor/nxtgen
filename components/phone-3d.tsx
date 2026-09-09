@@ -103,10 +103,9 @@ export function Phone3D({
             
             {/* Top Bar with Bell */}
             <div className="flex items-center justify-between">
-              <div className="inline-flex items-center space-x-1.5 px-2.5 py-1 rounded-full bg-purple-950/40 border border-purple-500/30 text-[10px] font-mono text-purple-300">
-                <span className="w-1.5 h-1.5 rounded-full bg-purple-400 animate-ping" />
-                <span>NXT PASS ATIVO</span>
-              </div>
+              <span className="text-[10px] font-mono text-purple-400 font-semibold tracking-wider">
+                NXT PASS
+              </span>
 
               <div className="relative p-2 rounded-full bg-white/5 hover:bg-white/10 transition-colors">
                 <Bell className="w-4 h-4 text-gray-300" />

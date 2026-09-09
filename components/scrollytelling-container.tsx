@@ -1,31 +1,20 @@
 "use client";
 
 import React, { useRef, useState, useEffect } from "react";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { motion, useScroll, useTransform, useSpring } from "framer-motion";
 import { Phone3D } from "@/components/phone-3d";
 import { useAuth } from "@/hooks/use-auth";
 import {
-  Sparkles,
-  ShieldCheck,
-  Zap,
   ArrowRight,
-  TrendingUp,
-  CheckCircle2,
-  Lock,
-  Mail,
-  UserPlus,
-  LogIn,
-  Layers,
-  Award,
   AlertCircle,
   Loader2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 export function ScrollytellingContainer() {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -132,26 +121,26 @@ export function ScrollytellingContainer() {
       if (authTab === "login") {
         const res = await login(authEmail, authPass);
         if (res.success) {
-          setAuthSuccessMsg("Sessão autenticada via HMAC/JWT! Redirecionando para o NXT PASS...");
+          setAuthSuccessMsg("Login realizado com sucesso! Redirecionando...");
           setTimeout(() => {
             router.push("/pass");
-          }, 800);
+          }, 700);
         } else {
-          setAuthErrorMsg(res.error || "Credenciais inválidas. Tente o botão Preencher Demo.");
+          setAuthErrorMsg(res.error || "Credenciais incorretas. Verifique seu e-mail e senha.");
         }
       } else {
         const res = await signup(authName, authEmail, authPass);
         if (res.success) {
-          setAuthSuccessMsg("Conta ativada com sucesso (Zero confirmação de e-mail)! Redirecionando...");
+          setAuthSuccessMsg("Conta criada com sucesso! Redirecionando...");
           setTimeout(() => {
             router.push("/pass");
-          }, 800);
+          }, 700);
         } else {
-          setAuthErrorMsg(res.error || "Falha ao criar conta.");
+          setAuthErrorMsg(res.error || "Não foi possível criar a conta.");
         }
       }
     } catch (err: any) {
-      setAuthErrorMsg(err.message || "Erro de conexão.");
+      setAuthErrorMsg(err.message || "Erro ao conectar com o servidor.");
     } finally {
       setAuthLoading(false);
     }
@@ -197,11 +186,11 @@ export function ScrollytellingContainer() {
         ----------------------------------------------------------------------- */}
         <section className="min-h-screen flex flex-col justify-center px-4 sm:px-12 max-w-7xl mx-auto py-20 pointer-events-none">
           <div className="max-w-xl space-y-6 pointer-events-auto p-6 sm:p-0 rounded-3xl sm:rounded-none bg-[#08090C]/85 sm:bg-transparent backdrop-blur-xl sm:backdrop-blur-none border border-white/10 sm:border-none shadow-2xl sm:shadow-none">
-            {/* Tag Badge */}
-            <div className="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-purple-950/60 border border-purple-500/30 text-purple-300 font-mono text-xs shadow-[0_0_15px_rgba(139,92,246,0.3)]">
-              <span className="w-2 h-2 rounded-full bg-purple-400 animate-ping" />
-              <span>BUILD. DON&apos;T BET.</span>
-            </div>
+            
+            {/* Tagline Sem Balão */}
+            <p className="text-xs font-mono uppercase tracking-[0.25em] text-purple-400 font-semibold">
+              Build. Don&apos;t Bet.
+            </p>
 
             {/* Title */}
             <h1 className="font-heading text-4xl sm:text-6xl md:text-7xl font-bold tracking-tight text-white leading-[1.05]">
@@ -213,8 +202,8 @@ export function ScrollytellingContainer() {
 
             {/* Subtitle */}
             <p className="text-base sm:text-lg text-gray-400 font-sans leading-relaxed">
-              O super app da nova geração que transforma disciplina em recompensas. 
-              Substitua a monetização de impulsos por salas VIP, cashback, investimentos e experiências reais.
+              O super app que transforma hábitos positivos em recompensas. 
+              Substitua impulsos por salas VIP, cashback, investimentos e experiências reais.
             </p>
 
             {/* CTAs */}
@@ -223,7 +212,7 @@ export function ScrollytellingContainer() {
                 href="#secao-login"
                 className="px-6 py-3.5 rounded-xl bg-gradient-to-r from-purple-600 via-violet-600 to-cyan-500 text-white font-bold uppercase tracking-wider shadow-[0_0_25px_rgba(139,92,246,0.5)] hover:scale-105 active:scale-95 transition-all flex items-center space-x-2"
               >
-                <span>Criar Conta Grátis</span>
+                <span>Criar Conta</span>
                 <ArrowRight className="w-4 h-4" />
               </a>
 
@@ -231,17 +220,14 @@ export function ScrollytellingContainer() {
                 href="#secao-pass"
                 className="px-6 py-3.5 rounded-xl bg-[#121622]/80 border border-white/10 hover:border-purple-400/40 text-gray-300 hover:text-white font-bold uppercase tracking-wider transition-all"
               >
-                Explorar Ecossistema ↓
+                Explorar Benefícios
               </a>
             </div>
 
-            {/* Scroll Indicator */}
-            <div className="pt-10 flex items-center space-x-3 text-xs font-mono text-gray-500">
-              <span className="w-5 h-8 rounded-full border border-gray-600 flex items-start justify-center p-1">
-                <span className="w-1 h-2 bg-purple-400 rounded-full animate-bounce" />
-              </span>
-              <span>Role para explorar a experiência em 3D</span>
-            </div>
+            {/* Scroll Indicator Sem Ícones Exagerados */}
+            <p className="pt-8 text-xs font-mono text-gray-500">
+              Role para explorar ↓
+            </p>
           </div>
         </section>
 
@@ -254,59 +240,50 @@ export function ScrollytellingContainer() {
           className="min-h-screen flex flex-col justify-center px-4 sm:px-12 max-w-7xl mx-auto py-24 pointer-events-none"
         >
           <div className="max-w-md lg:max-w-lg space-y-6 pointer-events-auto p-6 sm:p-0 rounded-3xl sm:rounded-none bg-[#08090C]/85 sm:bg-transparent backdrop-blur-xl sm:backdrop-blur-none border border-white/10 sm:border-none shadow-2xl sm:shadow-none">
-            <div className="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-cyan-950/60 border border-cyan-500/30 text-cyan-300 font-mono text-xs">
-              <Zap className="w-3.5 h-3.5 text-cyan-400" />
-              <span>NXT PASS • CLUBE DE BENEFÍCIOS</span>
-            </div>
+            
+            <p className="text-xs font-mono uppercase tracking-[0.25em] text-cyan-400 font-semibold">
+              NXT PASS • Clube de Benefícios
+            </p>
 
             <h2 className="font-heading text-3xl sm:text-5xl font-bold text-white tracking-tight leading-tight">
               Descontos reais. <br />
-              <span className="text-cyan-400">Zero taxas de loja.</span>
+              <span className="text-cyan-400">Vantagens exclusivas.</span>
             </h2>
 
             <p className="text-sm sm:text-base text-gray-400 leading-relaxed font-sans">
-              Um marketplace independente 100% web. Como operamos sem as comissões predatórias de 30% da Apple e do Google, 
-              repassamos a vantagem diretamente para você e para os estabelecimentos credenciados.
+              Um marketplace independente direto no seu bolso. Acesse experiências únicas, gastronomia selecionada, moda streetwear e tecnologia com vantagens de verdade.
             </p>
 
-            <div className="space-y-3 font-mono text-xs">
-              <div className="p-3.5 rounded-xl bg-[#101420]/80 border border-cyan-500/20 flex items-start space-x-3">
-                <CheckCircle2 className="w-4 h-4 text-cyan-400 shrink-0 mt-0.5" />
-                <div>
-                  <strong className="text-white block">Salas VIP & Viagens Globais</strong>
-                  <span className="text-gray-400">Acesso a lounges em aeroportos e upgrades automáticos.</span>
-                </div>
+            {/* Lista Editorial Limpa Sem Ícones Exagerados */}
+            <div className="space-y-4 pt-2 font-sans">
+              <div className="border-l-2 border-cyan-400/60 pl-4 py-1">
+                <h3 className="text-sm font-bold text-white">Salas VIP & Viagens</h3>
+                <p className="text-xs text-gray-400">Acesso a lounges em aeroportos e upgrades selecionados.</p>
               </div>
 
-              <div className="p-3.5 rounded-xl bg-[#101420]/80 border border-purple-500/20 flex items-start space-x-3">
-                <CheckCircle2 className="w-4 h-4 text-purple-400 shrink-0 mt-0.5" />
-                <div>
-                  <strong className="text-white block">Cashback Instantâneo via Pix</strong>
-                  <span className="text-gray-400">Economize de 20% a 50% em compras de vestuário, tech e gastronomia.</span>
-                </div>
+              <div className="border-l-2 border-purple-400/60 pl-4 py-1">
+                <h3 className="text-sm font-bold text-white">Cashback Instantâneo via Pix</h3>
+                <p className="text-xs text-gray-400">Economia real de 20% a 50% em estabelecimentos credenciados.</p>
               </div>
 
-              <div className="p-3.5 rounded-xl bg-[#101420]/80 border border-blue-500/20 flex items-start space-x-3">
-                <CheckCircle2 className="w-4 h-4 text-blue-400 shrink-0 mt-0.5" />
-                <div>
-                  <strong className="text-white block">QR Code Dinâmico Anti-Fraude</strong>
-                  <span className="text-gray-400">Tokens criptográficos HMAC que expiram a cada 60 segundos.</span>
-                </div>
+              <div className="border-l-2 border-blue-400/60 pl-4 py-1">
+                <h3 className="text-sm font-bold text-white">Cupons Digitais Protegidos</h3>
+                <p className="text-xs text-gray-400">Geração de códigos exclusivos direto no celular para uso no balcão.</p>
               </div>
             </div>
           </div>
         </section>
 
         {/* -----------------------------------------------------------------------
-            SECTION 3: GAMIFICAÇÃO & FUTURE REWARDS™ (Scroll 55% - 80%)
+            SECTION 3: GAMIFICAÇÃO & EVOLUÇÃO (Scroll 55% - 80%)
             Phone moves to the Left -> Content on the Right
         ----------------------------------------------------------------------- */}
         <section className="min-h-screen flex flex-col justify-center items-end px-4 sm:px-12 max-w-7xl mx-auto py-24 pointer-events-none">
           <div className="max-w-md lg:max-w-lg space-y-6 pointer-events-auto text-left pl-0 md:pl-6 p-6 sm:p-0 rounded-3xl sm:rounded-none bg-[#08090C]/85 sm:bg-transparent backdrop-blur-xl sm:backdrop-blur-none border border-white/10 sm:border-none shadow-2xl sm:shadow-none">
-            <div className="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-purple-950/60 border border-purple-500/30 text-purple-300 font-mono text-xs shadow-[0_0_15px_rgba(139,92,246,0.3)]">
-              <Award className="w-3.5 h-3.5 text-purple-400" />
-              <span>NXT SCORE & PROGRESSÃO</span>
-            </div>
+            
+            <p className="text-xs font-mono uppercase tracking-[0.25em] text-purple-400 font-semibold">
+              NXT Score & Progressão
+            </p>
 
             <h2 className="font-heading text-3xl sm:text-5xl font-bold text-white tracking-tight leading-tight">
               As bets lucram com a perda. <br />
@@ -316,31 +293,31 @@ export function ScrollytellingContainer() {
             </h2>
 
             <p className="text-sm sm:text-base text-gray-400 leading-relaxed font-sans">
-              Cada hábito saudável pontua no seu <strong className="text-white">NXT Level</strong>: economizar, completar mentorias, participar das corridas do NXT RUN ou movimentar sua conta digital. 
-              Suba do Nível 1 ao Nível 10 e desbloqueie limites de crédito, anuidade zero e participações em startups.
+              Cada hábito saudável pontua no seu <strong className="text-white">NXT Level</strong>: economizar, completar metas e participar dos eventos da comunidade. 
+              Suba de nível e desbloqueie limites diferenciados, anuidade zero e benefícios maiores.
             </p>
 
-            <div className="p-4 rounded-2xl bg-gradient-to-br from-[#1C152B]/80 to-[#100D1A]/80 border border-purple-500/30 space-y-3">
+            <div className="p-4 rounded-2xl bg-[#13111C] border border-purple-500/20 space-y-3">
               <div className="flex items-center justify-between text-xs font-mono">
-                <span className="text-purple-300 font-bold">Temporada de Gamificação</span>
+                <span className="text-purple-300 font-medium">Temporada Atual</span>
                 <span className="text-emerald-400 font-bold">+350 XP Hoje</span>
               </div>
 
               {/* Progress visual in text box */}
-              <div className="w-full h-2.5 bg-black/60 rounded-full overflow-hidden border border-white/5">
-                <div className="h-full w-[71.6%] bg-gradient-to-r from-purple-500 via-violet-400 to-cyan-400 shadow-[0_0_15px_rgba(139,92,246,0.8)]" />
+              <div className="w-full h-2 bg-black/60 rounded-full overflow-hidden border border-white/5">
+                <div className="h-full w-[71.6%] bg-gradient-to-r from-purple-500 via-violet-400 to-cyan-400" />
               </div>
 
               <div className="flex justify-between text-[11px] font-mono text-gray-400">
                 <span>NXT Level 3</span>
-                <span className="text-white font-bold">2.150 / 3.000 XP para Nível 4</span>
+                <span className="text-white font-bold">2.150 / 3.000 XP</span>
               </div>
             </div>
           </div>
         </section>
 
         {/* -----------------------------------------------------------------------
-            SECTION 4: CALL TO ACTION & SUPABASE LOGIN (Scroll 80% - 100%)
+            SECTION 4: ACESSO & CADASTRO (Scroll 80% - 100%)
             Phone aligned vertically on Left -> Auth Card on the Right
         ----------------------------------------------------------------------- */}
         <section
@@ -349,14 +326,14 @@ export function ScrollytellingContainer() {
         >
           <div className="max-w-md w-full pointer-events-auto space-y-6">
             <div className="space-y-2">
-              <Badge className="bg-purple-950/60 border-purple-500/40 text-purple-300 font-mono text-xs">
-                ACESSO IMEDIATO • RLS SEGURO
-              </Badge>
+              <p className="text-xs font-mono uppercase tracking-[0.25em] text-purple-400 font-semibold">
+                Acesso à Plataforma
+              </p>
               <h2 className="font-heading text-3xl sm:text-4xl font-bold text-white tracking-tight">
                 Entre no NXTGEN
               </h2>
               <p className="text-xs text-gray-400 font-sans">
-                Acesse sua carteira de benefícios ou crie sua conta sem confirmação de e-mail.
+                Acesse sua carteira de benefícios ou cadastre-se para começar.
               </p>
             </div>
 
@@ -376,7 +353,7 @@ export function ScrollytellingContainer() {
                     onClick={() => router.push("/pass")}
                     className="w-full py-3.5 rounded-xl bg-gradient-to-r from-purple-600 via-violet-600 to-cyan-500 text-white font-bold uppercase tracking-wider flex items-center justify-center space-x-2 shadow-[0_0_20px_rgba(139,92,246,0.6)] cursor-pointer hover:scale-[1.02] active:scale-[0.98] transition-all"
                   >
-                    <span>Abrir Minha Carteira NXT PASS</span>
+                    <span>Abrir Carteira de Benefícios</span>
                     <ArrowRight className="w-4 h-4" />
                   </button>
                   <button
@@ -388,7 +365,7 @@ export function ScrollytellingContainer() {
                 </div>
               </Card>
             ) : (
-              <Card className="bg-[#0F121C]/90 border border-purple-500/30 backdrop-blur-xl shadow-[0_15px_45px_rgba(0,0,0,0.8),0_0_25px_rgba(139,92,246,0.2)]">
+              <Card className="bg-[#0F121C]/90 border border-purple-500/30 backdrop-blur-xl shadow-2xl">
                 <CardHeader className="pb-4">
                   <Tabs value={authTab} onValueChange={(val) => setAuthTab(val as "login" | "signup")} className="w-full">
                     <TabsList className="grid grid-cols-2 bg-black/50 border border-white/10 p-1 w-full">
@@ -396,14 +373,12 @@ export function ScrollytellingContainer() {
                         value="login"
                         className="text-xs font-mono font-bold data-[state=active]:bg-purple-600 data-[state=active]:text-white"
                       >
-                        <LogIn className="w-3.5 h-3.5 mr-1.5" />
                         Entrar
                       </TabsTrigger>
                       <TabsTrigger
                         value="signup"
                         className="text-xs font-mono font-bold data-[state=active]:bg-purple-600 data-[state=active]:text-white"
                       >
-                        <UserPlus className="w-3.5 h-3.5 mr-1.5" />
                         Criar Conta
                       </TabsTrigger>
                     </TabsList>
@@ -412,9 +387,8 @@ export function ScrollytellingContainer() {
 
                 <CardContent className="space-y-4">
                   {authSuccessMsg && (
-                    <div className="p-3 rounded-xl bg-emerald-950/60 border border-emerald-500/40 text-emerald-300 text-xs font-mono flex items-center space-x-2 animate-pulse">
-                      <CheckCircle2 className="w-4 h-4 shrink-0 text-emerald-400" />
-                      <span>{authSuccessMsg}</span>
+                    <div className="p-3 rounded-xl bg-emerald-950/60 border border-emerald-500/40 text-emerald-300 text-xs font-mono">
+                      {authSuccessMsg}
                     </div>
                   )}
 
@@ -442,32 +416,26 @@ export function ScrollytellingContainer() {
 
                     <div className="space-y-1">
                       <label className="text-[11px] font-mono text-gray-300 uppercase">E-mail</label>
-                      <div className="relative">
-                        <Input
-                          type="email"
-                          value={authEmail}
-                          onChange={(e) => setAuthEmail(e.target.value)}
-                          placeholder="rafael.molina@nxtgen.app"
-                          required
-                          className="bg-black/60 border-white/10 text-white placeholder-gray-600 focus-visible:border-purple-500 font-sans"
-                        />
-                        <Mail className="w-4 h-4 text-gray-500 absolute right-3 top-2.5 pointer-events-none" />
-                      </div>
+                      <Input
+                        type="email"
+                        value={authEmail}
+                        onChange={(e) => setAuthEmail(e.target.value)}
+                        placeholder="rafael.molina@nxtgen.app"
+                        required
+                        className="bg-black/60 border-white/10 text-white placeholder-gray-600 focus-visible:border-purple-500 font-sans"
+                      />
                     </div>
 
                     <div className="space-y-1">
                       <label className="text-[11px] font-mono text-gray-300 uppercase">Senha</label>
-                      <div className="relative">
-                        <Input
-                          type="password"
-                          value={authPass}
-                          onChange={(e) => setAuthPass(e.target.value)}
-                          placeholder="••••••••••••"
-                          required
-                          className="bg-black/60 border-white/10 text-white placeholder-gray-600 focus-visible:border-purple-500 font-sans"
-                        />
-                        <Lock className="w-4 h-4 text-gray-500 absolute right-3 top-2.5 pointer-events-none" />
-                      </div>
+                      <Input
+                        type="password"
+                        value={authPass}
+                        onChange={(e) => setAuthPass(e.target.value)}
+                        placeholder="••••••••••••"
+                        required
+                        className="bg-black/60 border-white/10 text-white placeholder-gray-600 focus-visible:border-purple-500 font-sans"
+                      />
                     </div>
 
                     <Button
@@ -483,17 +451,13 @@ export function ScrollytellingContainer() {
                       ) : authTab === "login" ? (
                         "Acessar Plataforma"
                       ) : (
-                        "Ativar Conta Instantânea"
+                        "Criar Conta"
                       )}
                     </Button>
                   </form>
 
-                  {/* Quick Demo Credentials */}
-                  <div className="pt-2 border-t border-white/10 flex items-center justify-between text-[11px] font-mono text-gray-400">
-                    <span className="flex items-center">
-                      <ShieldCheck className="w-3.5 h-3.5 text-emerald-400 mr-1" />
-                      Auto-confirmação ativa
-                    </span>
+                  {/* Preencher Demo Limpo */}
+                  <div className="pt-2 border-t border-white/10 flex justify-end text-[11px] font-mono">
                     <button
                       type="button"
                       onClick={() => {
@@ -516,18 +480,23 @@ export function ScrollytellingContainer() {
       </div>
 
       {/* =========================================================================
-          TECHNICAL FOOTER
+          FOOTER COM LOGO OFICIAL
       ========================================================================= */}
-      <footer className="border-t border-white/10 py-10 px-6 sm:px-12 bg-[#050608] text-xs font-mono text-gray-500">
+      <footer className="border-t border-white/10 py-8 px-6 sm:px-12 bg-[#050608] text-xs font-mono text-gray-500">
         <div className="max-w-7xl mx-auto flex flex-col sm:flex-row justify-between items-center gap-4">
-          <div className="flex items-center space-x-2">
-            <span className="font-heading text-white font-bold text-sm tracking-tighter">NXTGEN</span>
-            <span>• ECOSSISTEMA MULTI-TENANT & RLS BANCÁRIO</span>
+          <div className="flex items-center space-x-3">
+            <Image
+              src="/logonxtgen.png"
+              alt="NXTGEN"
+              width={130}
+              height={36}
+              className="h-7 w-auto object-contain opacity-80 hover:opacity-100 transition-opacity"
+            />
           </div>
           <div className="flex items-center space-x-6 text-gray-400">
-            <span>Fase 1: NXT PASS</span>
-            <span>Fase 2: NXT BANK</span>
-            <span>Fase 3: NXT LIVE</span>
+            <a href="/pass" className="hover:text-white transition-colors">NXT PASS</a>
+            <a href="/validador" className="hover:text-white transition-colors">Validador</a>
+            <a href="#secao-login" className="hover:text-white transition-colors">Entrar</a>
           </div>
           <div className="text-gray-600">
             © 2026 NXTGEN. Todos os direitos reservados.
