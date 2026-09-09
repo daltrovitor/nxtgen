@@ -10,13 +10,13 @@ export function BottomNav() {
 
   const navItems = [
     {
-      label: "Início",
+      label: "Manifesto",
       href: "/",
       icon: Home,
     },
     {
       label: "NXT PASS",
-      href: "/",
+      href: "/pass",
       icon: Ticket,
       highlight: true,
     },
@@ -38,7 +38,7 @@ export function BottomNav() {
   ];
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-40 max-w-md mx-auto glass-panel border-t border-white/5 py-2 px-3">
+    <nav className="fixed bottom-0 left-0 right-0 z-40 max-w-md mx-auto bg-[#08080a]/95 backdrop-blur-md border-t border-white/10 py-2 px-3 font-mono">
       <div className="flex items-center justify-around">
         {navItems.map((item) => {
           const Icon = item.icon;
@@ -49,23 +49,16 @@ export function BottomNav() {
               key={item.label}
               href={item.href}
               className={cn(
-                "flex flex-col items-center py-1 px-2 rounded-lg transition-all duration-200 relative",
+                "flex flex-col items-center py-1 px-2 transition-all relative",
                 isActive
-                  ? "text-indigo-400 font-semibold"
-                  : "text-gray-400 hover:text-gray-200"
+                  ? "text-white font-bold"
+                  : "text-gray-500 hover:text-gray-300"
               )}
             >
-              <div
-                className={cn(
-                  "p-1 rounded-full transition-transform",
-                  item.highlight && isActive && "bg-indigo-600/20 text-indigo-400 shadow-glow"
-                )}
-              >
-                <Icon className={cn("w-5 h-5", isActive ? "scale-110" : "scale-100")} />
-              </div>
-              <span className="text-[10px] mt-0.5 tracking-tight">{item.label}</span>
+              <Icon className={cn("w-4 h-4", isActive && "text-brand-cyan")} />
+              <span className="text-[9px] mt-1 tracking-tight uppercase">{item.label}</span>
               {isActive && (
-                <div className="absolute -bottom-1 w-5 h-0.5 bg-indigo-500 rounded-full" />
+                <div className="absolute -bottom-1 w-4 h-0.5 bg-brand-cyan" />
               )}
             </Link>
           );

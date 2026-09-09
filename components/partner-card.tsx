@@ -2,7 +2,7 @@
 
 import { Partner, Benefit } from "@/lib/store/mock-db";
 import { formatCurrency } from "@/lib/utils";
-import { MapPin, Star, Sparkles, CheckCircle2, ChevronRight, ArrowRight } from "lucide-react";
+import { MapPin, Star, ArrowRight, Check } from "lucide-react";
 
 interface PartnerCardProps {
   partner: Partner;
@@ -13,37 +13,31 @@ export function PartnerCard({ partner, onSelectBenefit }: PartnerCardProps) {
   const primaryBenefit = partner.benefits[0];
 
   return (
-    <div className="rounded-2xl glass-panel overflow-hidden border border-white/5 hover:border-indigo-500/30 transition-all duration-300 group">
-      {/* Banner / Header */}
-      <div className="relative h-32 w-full overflow-hidden">
+    <div className="border border-white/10 bg-[#0f1015] hover:border-white/30 transition-all font-sans">
+      {/* Banner / Cover */}
+      <div className="relative h-36 w-full overflow-hidden bg-black">
         <img
           src={partner.bannerUrl}
           alt={partner.name}
-          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+          className="w-full h-full object-cover grayscale contrast-125 hover:grayscale-0 transition-all duration-500"
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-[#0a0b10] via-[#0a0b10]/40 to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-t from-[#0f1015] via-transparent to-transparent" />
 
-        {/* Rating & Verified Badges */}
-        <div className="absolute top-3 right-3 flex items-center space-x-1.5">
-          <span className="flex items-center space-x-1 bg-black/60 backdrop-blur-md px-2 py-0.5 rounded-full border border-white/10 text-[11px] font-bold text-amber-400">
-            <Star className="w-3 h-3 fill-amber-400 text-amber-400" />
-            <span>{partner.rating.toFixed(1)}</span>
-          </span>
+        <div className="absolute top-3 left-3 bg-black/80 px-2 py-0.5 border border-white/15 text-[10px] font-mono uppercase tracking-wider text-white">
+          {partner.categoryName}
         </div>
 
-        {/* Category Pill */}
-        <div className="absolute top-3 left-3">
-          <span className="bg-indigo-950/80 backdrop-blur-md px-2.5 py-0.5 rounded-full border border-indigo-500/40 text-[10px] font-bold text-indigo-300 uppercase tracking-wider">
-            {partner.categoryName}
-          </span>
+        <div className="absolute top-3 right-3 flex items-center space-x-1 bg-black/80 px-2 py-0.5 border border-white/15 font-mono text-[10px] text-amber-400 font-bold">
+          <Star className="w-3 h-3 fill-amber-400" />
+          <span>{partner.rating.toFixed(1)}</span>
         </div>
       </div>
 
-      {/* Partner Info */}
-      <div className="p-4 pt-2">
+      {/* Content */}
+      <div className="p-4 space-y-3">
         <div className="flex items-start justify-between">
           <div className="flex items-center space-x-3">
-            <div className="w-12 h-12 rounded-xl overflow-hidden border border-white/10 -mt-7 bg-[#12141d] relative z-10 shadow-lg shrink-0">
+            <div className="w-10 h-10 border border-white/15 overflow-hidden bg-black shrink-0 -mt-6 relative z-10">
               <img
                 src={partner.logoUrl}
                 alt={partner.name}
@@ -51,15 +45,10 @@ export function PartnerCard({ partner, onSelectBenefit }: PartnerCardProps) {
               />
             </div>
             <div>
-              <div className="flex items-center space-x-1">
-                <h3 className="text-sm font-bold text-white group-hover:text-indigo-300 transition-colors">
-                  {partner.name}
-                </h3>
-                {partner.verified && (
-                  <CheckCircle2 className="w-3.5 h-3.5 text-cyan-400 fill-cyan-400/20" />
-                )}
-              </div>
-              <p className="text-[11px] text-gray-400 flex items-center mt-0.5">
+              <h3 className="font-display text-sm font-bold uppercase text-white tracking-tight">
+                {partner.name}
+              </h3>
+              <p className="text-[11px] text-gray-400 flex items-center mt-0.5 font-mono">
                 <MapPin className="w-3 h-3 mr-1 text-gray-500" />
                 {partner.location}
               </p>
@@ -67,39 +56,36 @@ export function PartnerCard({ partner, onSelectBenefit }: PartnerCardProps) {
           </div>
         </div>
 
-        {/* Benefits Section */}
         {primaryBenefit && (
-          <div className="mt-3.5 pt-3 border-t border-white/5">
+          <div className="pt-2 border-t border-white/10 space-y-2">
             <div className="flex items-center justify-between">
-              <span className="inline-flex items-center px-2 py-0.5 rounded-md text-xs font-black bg-gradient-to-r from-indigo-500 to-cyan-500 text-white shadow-glow">
-                <Sparkles className="w-3 h-3 mr-1" />
+              <span className="font-mono text-xs font-black text-brand-cyan tracking-wider uppercase border border-brand-cyan/30 px-2 py-0.5 bg-brand-cyan/5">
                 {primaryBenefit.discountLabel}
               </span>
               {primaryBenefit.originalPrice && primaryBenefit.promotionalPrice && (
-                <div className="text-right">
-                  <span className="text-[11px] text-gray-500 line-through mr-1.5">
+                <div className="text-right font-mono text-xs">
+                  <span className="text-gray-500 line-through mr-1.5 text-[11px]">
                     {formatCurrency(primaryBenefit.originalPrice)}
                   </span>
-                  <span className="text-xs font-bold text-emerald-400">
+                  <span className="font-bold text-emerald-400">
                     {formatCurrency(primaryBenefit.promotionalPrice)}
                   </span>
                 </div>
               )}
             </div>
 
-            <p className="text-xs font-medium text-gray-200 mt-2 line-clamp-1">
+            <p className="text-xs font-semibold text-white">
               {primaryBenefit.title}
             </p>
-            <p className="text-[11px] text-gray-400 mt-0.5 line-clamp-2 leading-relaxed">
+            <p className="text-[11px] text-gray-400 line-clamp-2 leading-relaxed font-sans">
               {primaryBenefit.description}
             </p>
 
-            {/* Redeem CTA Button */}
             <button
               onClick={() => onSelectBenefit(partner, primaryBenefit)}
-              className="mt-3.5 w-full py-2.5 px-4 rounded-xl bg-gradient-to-r from-indigo-600 to-indigo-700 hover:from-indigo-500 hover:to-indigo-600 active:scale-[0.98] text-white text-xs font-bold flex items-center justify-center space-x-1.5 transition-all duration-150 shadow-glow"
+              className="mt-2 w-full py-2.5 px-4 bg-white text-black hover:bg-gray-200 active:scale-[0.99] font-mono text-xs font-bold uppercase tracking-wider flex items-center justify-center space-x-2 transition-all"
             >
-              <span>USAR BENEFÍCIO</span>
+              <span>Resgatar Benefício</span>
               <ArrowRight className="w-3.5 h-3.5" />
             </button>
           </div>

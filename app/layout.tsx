@@ -1,9 +1,29 @@
 import type { Metadata, Viewport } from "next";
+import { Space_Grotesk, Plus_Jakarta_Sans, JetBrains_Mono } from "next/font/google";
+import { AuthProvider } from "@/hooks/use-auth";
 import "./globals.css";
 
+const spaceGrotesk = Space_Grotesk({
+  subsets: ["latin"],
+  variable: "--font-display",
+  weight: ["500", "600", "700"],
+});
+
+const jakarta = Plus_Jakarta_Sans({
+  subsets: ["latin"],
+  variable: "--font-sans",
+  weight: ["400", "500", "600", "700"],
+});
+
+const jetbrainsMono = JetBrains_Mono({
+  subsets: ["latin"],
+  variable: "--font-mono",
+  weight: ["400", "600", "700"],
+});
+
 export const metadata: Metadata = {
-  title: "NXT PASS | Clube de Benefícios Exclusivo",
-  description: "Marketplace de benefícios e experiências para as Gerações Alpha e Z. Build. Don't Bet.",
+  title: "NXTGEN • Build. Don't Bet.",
+  description: "O ecossistema de benefícios, fintech e comunidade desenhado para as Gerações Alpha e Z.",
   manifest: "/manifest.json",
   appleWebApp: {
     capable: true,
@@ -17,7 +37,7 @@ export const viewport: Viewport = {
   initialScale: 1,
   maximumScale: 1,
   userScalable: false,
-  themeColor: "#0a0b10",
+  themeColor: "#08080a",
 };
 
 export default function RootLayout({
@@ -26,12 +46,11 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="pt-BR" className="dark">
-      <body className="min-h-screen bg-[#0a0b10] text-gray-100 selection:bg-indigo-500 selection:text-white antialiased pb-20">
-        <div className="fixed inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-indigo-950/25 via-[#0a0b10] to-[#07080c] pointer-events-none -z-10" />
-        <div className="mx-auto max-w-md min-h-screen flex flex-col relative shadow-2xl bg-[#0a0b10]/80 border-x border-white/5">
+    <html lang="pt-BR" className={`dark ${spaceGrotesk.variable} ${jakarta.variable} ${jetbrainsMono.variable}`}>
+      <body className="min-h-screen bg-[#08080a] text-[#ededef] font-sans antialiased selection:bg-white selection:text-black">
+        <AuthProvider>
           {children}
-        </div>
+        </AuthProvider>
       </body>
     </html>
   );
