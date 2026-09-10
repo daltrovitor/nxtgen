@@ -15,9 +15,10 @@ export default function HomePage() {
           <Image
             src="/logonxtgen.png"
             alt="NXTGEN"
-            width={280}
-            height={80}
-            className="h-14 sm:h-16 md:h-20 w-auto object-contain transition-all duration-300 group-hover:scale-105 drop-shadow-[0_0_25px_rgba(139,92,246,0.45)]"
+            width={2065}
+            height={762}
+            className="h-8 sm:h-9 md:h-14 w-auto object-contain transition-all duration-300 group-hover:scale-105 drop-shadow-[0_0_20px_rgba(139,92,246,0.35)]"
+            style={{ width: "auto" }}
             priority
           />
         </Link>
@@ -31,7 +32,6 @@ export default function HomePage() {
             className="relative group px-5 py-2.5 rounded-xl bg-gradient-to-r from-purple-600/40 via-violet-600/40 to-cyan-500/30 hover:from-purple-600 hover:to-cyan-500 text-white border border-purple-500/50 font-semibold transition-all duration-300 shadow-[0_0_20px_rgba(139,92,246,0.35)] hover:shadow-[0_0_30px_rgba(139,92,246,0.7)] hover:scale-105 active:scale-95 cursor-pointer overflow-hidden"
           >
             <span className="relative z-10 flex items-center space-x-2">
-              <span className="w-2 h-2 rounded-full bg-cyan-400 animate-pulse" />
               <span>ENTRAR / CADASTRO</span>
             </span>
             <span className="absolute inset-0 -translate-x-full group-hover:translate-x-full transition-transform duration-700 bg-gradient-to-r from-transparent via-white/30 to-transparent pointer-events-none" />

@@ -19,6 +19,7 @@ interface AuthContextType {
   loading: boolean;
   login: (email: string, pass: string) => Promise<{ success: boolean; error?: string }>;
   signup: (fullName: string, email: string, pass: string) => Promise<{ success: boolean; error?: string }>;
+  loginWithGoogle: () => Promise<{ success: boolean; error?: string }>;
   logout: () => Promise<void>;
   refreshUser: () => Promise<void>;
 }
@@ -86,6 +87,42 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  const loginWithGoogle = async () => {
+    try {
+      // 1. Try Supabase Google OAuth redirect if live client available
+      try {
+        const { supabase, isUsingLiveSupabase } = await import("@/lib/supabase/client");
+        if (isUsingLiveSupabase && supabase) {
+          const { error } = await supabase.auth.signInWithOAuth({
+            provider: "google",
+            options: {
+              redirectTo: typeof window !== "undefined" ? `${window.location.origin}/auth/callback` : undefined,
+            },
+          });
+          if (!error) return { success: true };
+          console.warn("Supabase Google OAuth fallback triggered:", error.message);
+        }
+      } catch (supabaseErr) {
+        console.warn("Supabase client import notice:", supabaseErr);
+      }
+
+      // 2. Direct Google Authentication Endpoint
+      const res = await fetch("/api/auth/google", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({}),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        return { success: false, error: data.error || "Falha ao autenticar com o Google" };
+      }
+      setUser(data.user);
+      return { success: true };
+    } catch (err: any) {
+      return { success: false, error: err.message || "Erro ao conectar com o Google" };
+    }
+  };
+
   const logout = async () => {
     await fetch("/api/auth/logout", { method: "POST" });
     setUser(null);
@@ -93,7 +130,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   return (
-    <AuthContext.Provider value={{ user, loading, login, signup, logout, refreshUser }}>
+    <AuthContext.Provider value={{ user, loading, login, signup, loginWithGoogle, logout, refreshUser }}>
       {children}
     </AuthContext.Provider>
   );

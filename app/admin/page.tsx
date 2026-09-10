@@ -222,9 +222,11 @@ export default function AdminDashboardPage() {
               <Image
                 src="/logonxtgen.png"
                 alt="NXTGEN"
-                width={160}
-                height={45}
+                width={2065}
+                height={762}
+                priority
                 className="h-10 sm:h-12 w-auto object-contain"
+                style={{ width: "auto" }}
               />
             </Link>
             <span className="hidden sm:inline-block px-2.5 py-1 rounded-md bg-purple-950/80 border border-purple-500/40 text-[10px] font-mono tracking-widest text-purple-300 font-bold uppercase">

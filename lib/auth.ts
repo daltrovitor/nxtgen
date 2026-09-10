@@ -128,6 +128,39 @@ class UserStore {
     this.users.set(normalizedEmail, newUser);
     return newUser;
   }
+
+  findOrCreateGoogleUser(email: string, fullName: string, avatarUrl?: string): StoredUser {
+    const normalizedEmail = email.toLowerCase().trim();
+    const existing = this.users.get(normalizedEmail);
+    if (existing) {
+      if (avatarUrl && (!existing.avatarUrl || existing.avatarUrl.includes("unsplash"))) {
+        existing.avatarUrl = avatarUrl;
+      }
+      return existing;
+    }
+
+    const salt = crypto.randomBytes(16).toString("hex");
+    const passwordHash = this.hashPassword(crypto.randomBytes(24).toString("hex"), salt);
+    const id = `usr_g_${Date.now().toString(36)}_${crypto.randomBytes(4).toString("hex")}`;
+
+    const newUser: StoredUser = {
+      id,
+      email: normalizedEmail,
+      fullName: fullName.trim() || normalizedEmail.split("@")[0],
+      passwordHash,
+      salt,
+      role: "user",
+      nxtScore: 300, // Welcome bonus score
+      nxtLevel: 1,
+      avatarUrl: avatarUrl || "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=200&h=200&fit=crop&q=80",
+      walletBalance: 0,
+      emailConfirmed: true,
+      createdAt: new Date().toISOString(),
+    };
+
+    this.users.set(normalizedEmail, newUser);
+    return newUser;
+  }
 }
 
 export const userStore = new UserStore();

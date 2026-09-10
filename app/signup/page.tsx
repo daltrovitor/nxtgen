@@ -19,15 +19,36 @@ import {
 
 export default function SignupPage() {
   const router = useRouter();
-  const { signup } = useAuth();
+  const { signup, loginWithGoogle } = useAuth();
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [agreeTerms, setAgreeTerms] = useState(true);
   const [loading, setLoading] = useState(false);
+  const [googleLoading, setGoogleLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
+
+  const handleGoogleSignup = async () => {
+    try {
+      setGoogleLoading(true);
+      setError(null);
+      const res = await loginWithGoogle();
+      if (res.success) {
+        setSuccess(true);
+        setTimeout(() => {
+          router.push("/");
+        }, 500);
+      } else {
+        setError(res.error || "Falha ao cadastrar com o Google.");
+      }
+    } catch (err: any) {
+      setError(err.message || "Erro de conexão com o Google.");
+    } finally {
+      setGoogleLoading(false);
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -63,9 +84,10 @@ export default function SignupPage() {
           <Image
             src="/logonxtgen.png"
             alt="NXTGEN"
-            width={220}
-            height={60}
+            width={2065}
+            height={762}
             className="h-10 sm:h-12 md:h-14 w-auto object-contain transition-opacity group-hover:opacity-85 drop-shadow-[0_0_20px_rgba(139,92,246,0.35)]"
+            style={{ width: "auto" }}
             priority
           />
         </Link>
@@ -215,13 +237,21 @@ export default function SignupPage() {
           {/* Google Only */}
           <button
             type="button"
-            className="w-full py-3 px-4 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 hover:border-purple-500/40 flex items-center justify-center space-x-2.5 text-gray-200 hover:text-white transition-all cursor-pointer group shadow-sm"
+            onClick={handleGoogleSignup}
+            disabled={loading || googleLoading || success}
+            className="w-full py-3 px-4 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 hover:border-purple-500/40 flex items-center justify-center space-x-2.5 text-gray-200 hover:text-white transition-all cursor-pointer group shadow-sm disabled:opacity-50"
             title="Cadastro via Google"
           >
-            <svg className="w-4 h-4 fill-current group-hover:scale-110 transition-transform" viewBox="0 0 24 24">
-              <path d="M12.24 10.285V13.4h6.887C18.2 16.14 15.645 18 12.24 18c-3.315 0-6-2.685-6-6s2.685-6 6-6c1.455 0 2.785.525 3.82 1.39l2.405-2.405C16.92 3.55 14.73 2.6 12.24 2.6 7.07 2.6 2.88 6.79 2.88 12s4.19 9.4 9.36 9.4c5.4 0 8.98-3.79 8.98-9.14 0-.61-.06-1.22-.17-1.975H12.24z" />
-            </svg>
-            <span className="text-xs font-semibold font-sans">Continuar com o Google</span>
+            {googleLoading ? (
+              <Loader2 className="w-4 h-4 animate-spin text-purple-400" />
+            ) : (
+              <svg className="w-4 h-4 fill-current group-hover:scale-110 transition-transform" viewBox="0 0 24 24">
+                <path d="M12.24 10.285V13.4h6.887C18.2 16.14 15.645 18 12.24 18c-3.315 0-6-2.685-6-6s2.685-6 6-6c1.455 0 2.785.525 3.82 1.39l2.405-2.405C16.92 3.55 14.73 2.6 12.24 2.6 7.07 2.6 2.88 6.79 2.88 12s4.19 9.4 9.36 9.4c5.4 0 8.98-3.79 8.98-9.14 0-.61-.06-1.22-.17-1.975H12.24z" />
+              </svg>
+            )}
+            <span className="text-xs font-semibold font-sans">
+              {googleLoading ? "Conectando ao Google..." : "Continuar com o Google"}
+            </span>
           </button>
 
           {/* Footer mode switch */}

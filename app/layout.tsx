@@ -24,6 +24,18 @@ export const metadata: Metadata = {
   title: "NXTGEN • The Future Pays More | Build. Don't Bet.",
   description: "Ecossistema financeiro, de benefícios e experiências para as Gerações Alpha e Z. Substituímos a monetização de impulsos por recompensas reais.",
   manifest: "/manifest.json",
+  icons: {
+    icon: [
+      { url: "/iconenxt.png" },
+      { url: "/iconenxt.png", sizes: "32x32", type: "image/png" },
+      { url: "/iconenxt.png", sizes: "192x192", type: "image/png" },
+      { url: "/iconenxt.png", sizes: "512x512", type: "image/png" },
+    ],
+    apple: [
+      { url: "/iconenxt.png" },
+    ],
+    shortcut: "/iconenxt.png",
+  },
   appleWebApp: {
     capable: true,
     statusBarStyle: "black-translucent",
@@ -50,6 +62,7 @@ export default function RootLayout({
   return (
     <html
       lang="pt-BR"
+      suppressHydrationWarning
       className={cn(
         "dark h-full antialiased",
         inter.variable,
@@ -57,7 +70,10 @@ export default function RootLayout({
         jetbrainsMono.variable
       )}
     >
-      <body className="min-h-full flex flex-col bg-[#000000] text-[#F3F4F6]">
+      <body
+        suppressHydrationWarning
+        className="min-h-full flex flex-col bg-[#000000] text-[#F3F4F6]"
+      >
         <CursorRibbons colors={["#8B5CF6", "#06B6D4", "#A855F7"]} />
         <AuthProvider>
           {children}

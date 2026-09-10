@@ -107,10 +107,11 @@ export function Preloader({ onComplete, durationMs = 3800 }: PreloaderProps) {
                 <Image
                   src="/logonxtgen.png"
                   alt="NXTGEN"
-                  width={240}
-                  height={65}
+                  width={2065}
+                  height={762}
                   priority
                   className="h-16 sm:h-20 w-auto object-contain relative z-10 drop-shadow-[0_0_30px_rgba(139,92,246,0.7)]"
+                  style={{ width: "auto" }}
                 />
               </div>
 

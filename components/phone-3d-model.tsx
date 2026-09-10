@@ -817,6 +817,7 @@ export function Phone3DModel({
     let lastPointerY = 0;
 
     const handlePointerDown = (e: PointerEvent) => {
+      if (e.pointerType === "touch") return;
       isDragging = true;
       lastPointerX = e.clientX;
       lastPointerY = e.clientY;
@@ -879,21 +880,20 @@ export function Phone3DModel({
         dragOffset.y *= 0.93;
       }
 
+      // Smooth interpolation toward target rotation + mouse offset + user drag
       // Subtle organic floating levitation (gives alive 3D luxury feel)
-      const now = performance.now() * 0.0015;
-      const floatY = Math.sin(now) * 0.04;
-      const subtleTilt = Math.cos(now * 0.8) * 0.6;
+      const now = performance.now() * 0.0018;
+      const floatY = Math.sin(now) * 0.08;
+      const subtleTilt = Math.cos(now * 0.8) * 1.5;
       phoneGroup.position.y = floatY;
 
-      // Smooth interpolation toward target rotation + mouse offset + user drag
       const targetX = targetRotationRef.current.x + mouseOffsetRef.current.y + dragOffset.x + subtleTilt;
       const targetY = targetRotationRef.current.y + mouseOffsetRef.current.x + dragOffset.y;
       const targetZ = targetRotationRef.current.z + (mouseOffsetRef.current.x * 0.35);
 
-      // 0.11 interpolation factor for ultra-fluid, responsive tracking
-      currentRotationRef.current.x += (targetX - currentRotationRef.current.x) * 0.11;
-      currentRotationRef.current.y += (targetY - currentRotationRef.current.y) * 0.11;
-      currentRotationRef.current.z += (targetZ - currentRotationRef.current.z) * 0.11;
+      currentRotationRef.current.x += (targetX - currentRotationRef.current.x) * 0.085;
+      currentRotationRef.current.y += (targetY - currentRotationRef.current.y) * 0.085;
+      currentRotationRef.current.z += (targetZ - currentRotationRef.current.z) * 0.085;
 
       phoneGroup.rotation.x = THREE.MathUtils.degToRad(currentRotationRef.current.x);
       phoneGroup.rotation.y = THREE.MathUtils.degToRad(currentRotationRef.current.y);
@@ -951,7 +951,7 @@ export function Phone3DModel({
       {/* WebGL 3D Canvas Mount Point */}
       <div
         ref={mountRef}
-        className="w-[310px] sm:w-[370px] md:w-[400px] h-[620px] sm:h-[720px] md:h-[780px] flex items-center justify-center pointer-events-auto cursor-grab active:cursor-grabbing select-none touch-none"
+        className="w-[340px] sm:w-[380px] md:w-[400px] h-[660px] sm:h-[740px] md:h-[780px] flex items-center justify-center pointer-events-auto cursor-grab active:cursor-grabbing select-none touch-none"
       />
     </div>
   );
