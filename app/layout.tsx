@@ -52,7 +52,6 @@ export const viewport: Viewport = {
 };
 
 import { AuthProvider } from "@/hooks/use-auth";
-import { CursorRibbons } from "@/components/cursor-ribbons";
 import { ThemeProvider, ThemeScript } from "@/components/theme-provider";
 import { FloatingThemeToggle } from "@/components/theme-toggle";
 import { ConfirmToastProvider } from "@/components/ui/confirm-toast";
@@ -81,7 +80,6 @@ export default function RootLayout({
         className="min-h-full flex flex-col bg-background text-foreground transition-colors duration-200"
       >
         <ThemeProvider>
-          <CursorRibbons colors={["#8B5CF6", "#06B6D4", "#A855F7"]} />
           <AuthProvider>
             <ConfirmToastProvider>
               {children}
