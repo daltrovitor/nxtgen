@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { cookies } from "next/headers";
 import { getCurrentUser, AUTH_COOKIE_NAME } from "@/lib/auth";
 
 export async function GET() {
@@ -6,6 +7,9 @@ export async function GET() {
   if (!user) {
     return NextResponse.json({ user: null }, { status: 401 });
   }
+
+  const cookieStore = await cookies();
+  const rememberMe = cookieStore.get("nxtgen_remember")?.value !== "0";
 
   return NextResponse.json({
     user: {
@@ -18,6 +22,7 @@ export async function GET() {
       walletBalance: user.walletBalance,
       avatarUrl: user.avatarUrl,
     },
+    rememberMe,
   });
 }
 

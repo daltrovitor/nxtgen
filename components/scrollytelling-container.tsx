@@ -34,7 +34,7 @@ if (typeof window !== "undefined") {
   gsap.registerPlugin(ScrollTrigger);
 }
 
-export function ScrollytellingContainer() {
+export function ScrollytellingContainer({ onGoToDashboard }: { onGoToDashboard?: () => void } = {}) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [isMobile, setIsMobile] = useState(false);
 
@@ -300,19 +300,15 @@ export function ScrollytellingContainer() {
       setGoogleLoading(true);
       setAuthErrorMsg("");
       setAuthSuccessMsg("");
-      const res = await loginWithGoogle();
-      if (res.success) {
-        setAuthSuccessMsg(
-          authTab === "login"
-            ? "Conectado com o Google com sucesso!"
-            : "Conta criada e conectada com o Google!"
-        );
-      } else {
+      const res = await loginWithGoogle(rememberMe);
+      if (!res.success) {
         setAuthErrorMsg(res.error || "Falha ao autenticar com o Google.");
+        setGoogleLoading(false);
       }
+      // Quando res.success é verdadeiro, a página é redirecionada para a tela de contas do Google.
+      // Mantemos o loading ativo sem emitir aviso prematuro de que a conexão já ocorreu.
     } catch (err: any) {
       setAuthErrorMsg(err.message || "Erro de conexão com o Google.");
-    } finally {
       setGoogleLoading(false);
     }
   };
@@ -325,16 +321,22 @@ export function ScrollytellingContainer() {
 
     try {
       if (authTab === "login") {
-        const res = await login(authEmail, authPass);
+        const res = await login(authEmail, authPass, rememberMe);
         if (res.success) {
-          setAuthSuccessMsg("Login realizado com sucesso! Bem-vindo ao NXTGEN.");
+          setAuthSuccessMsg("Login realizado com sucesso! Bem-vindo.");
+          setTimeout(() => {
+            if (onGoToDashboard) onGoToDashboard();
+          }, 400);
         } else {
           setAuthErrorMsg(res.error || "Credenciais incorretas. Verifique seu e-mail e senha.");
         }
       } else {
         const res = await signup(authName, authEmail, authPass);
         if (res.success) {
-          setAuthSuccessMsg("Conta criada com sucesso! Bem-vindo ao NXTGEN.");
+          setAuthSuccessMsg("Conta criada com sucesso! Bem-vindo.");
+          setTimeout(() => {
+            if (onGoToDashboard) onGoToDashboard();
+          }, 400);
         } else {
           setAuthErrorMsg(res.error || "Não foi possível criar a conta.");
         }
@@ -377,10 +379,7 @@ export function ScrollytellingContainer() {
               scale,
               opacity,
             }}
-            className={cn(
-              "transition-shadow",
-              isMobile ? "pointer-events-none" : "pointer-events-auto"
-            )}
+            className="transition-shadow pointer-events-none md:pointer-events-auto"
           >
             <Phone3DModel
               highlightBenefits={currentSection === 1}
@@ -389,6 +388,7 @@ export function ScrollytellingContainer() {
               rotationX={rotateX}
               rotationY={rotateY}
               rotationZ={rotateZ}
+              className="pointer-events-none md:pointer-events-auto"
             />
           </motion.div>
 
@@ -566,60 +566,27 @@ export function ScrollytellingContainer() {
             </div>
 
             {currentUser ? (
-              <Card className="bg-[#0F121C]/90 border border-emerald-500/40 backdrop-blur-xl p-6 space-y-4 shadow-2xl">
-                <div className="flex items-center space-x-3">
-                  <div className="w-10 h-10 rounded-full bg-purple-600/30 border border-purple-400/50 flex items-center justify-center font-mono font-bold text-white">
-                    {currentUser.name ? currentUser.name[0] : "U"}
-                  </div>
-                  <div>
-                    <div className="flex items-center space-x-2">
-                      <h3 className="font-heading text-white font-bold">{currentUser.name}</h3>
-                      <span className={`px-2 py-0.5 rounded text-[10px] font-mono font-bold uppercase ${
-                        currentUser.role === "admin"
-                          ? "bg-emerald-950 text-emerald-400 border border-emerald-500/40"
-                          : "bg-white/10 text-gray-300"
-                      }`}>
-                        role: {currentUser.role}
-                      </span>
-                    </div>
-                    <p className="text-xs font-mono text-gray-400">{currentUser.email} • Nível {currentUser.nxtLevel}</p>
-                  </div>
+              <div className="p-6 rounded-3xl bg-[#0F121C]/90 border border-purple-500/30 backdrop-blur-xl text-center space-y-4 shadow-2xl">
+                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-purple-950/60 border border-purple-500/30 text-xs font-mono text-purple-300">
+                  <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                  <span>Sessão Ativa • {currentUser.name}</span>
                 </div>
-                <div className="pt-2 flex flex-col gap-2 font-mono text-xs">
-                  {currentUser.role === "admin" ? (
-                    <a
-                      href="/admin"
-                      className="w-full py-3 rounded-xl bg-gradient-to-r from-emerald-600 to-cyan-600 hover:brightness-110 text-white font-bold uppercase tracking-wider flex items-center justify-center space-x-2 shadow-[0_0_20px_rgba(16,185,129,0.5)] cursor-pointer hover:scale-[1.02] active:scale-[0.98] transition-all"
-                    >
-                      <ShieldCheck className="w-4 h-4" />
-                      <span>Acessar Painel de Admin (/admin)</span>
-                    </a>
-                  ) : (
-                    <a
-                      href="/admin"
-                      className="w-full py-2.5 rounded-xl bg-white/5 hover:bg-white/10 text-amber-300/80 hover:text-amber-300 border border-amber-500/20 flex items-center justify-center space-x-2 transition-all cursor-pointer"
-                    >
-                      <span>Testar Bloqueio de Admin (role = &apos;user&apos;)</span>
-                    </a>
-                  )}
-                  <button
-                    onClick={() => {
-                      const el = document.getElementById("secao-pass");
-                      el?.scrollIntoView({ behavior: "smooth" });
-                    }}
-                    className="w-full py-3 rounded-xl bg-gradient-to-r from-purple-600 via-violet-600 to-cyan-500 text-white font-bold uppercase tracking-wider flex items-center justify-center space-x-2 shadow-[0_0_20px_rgba(139,92,246,0.6)] cursor-pointer hover:scale-[1.02] active:scale-[0.98] transition-all"
-                  >
-                    <span>Explorar Benefícios do Meu Nível</span>
-                    <ArrowRight className="w-4 h-4" />
-                  </button>
-                  <button
-                    onClick={() => logout()}
-                    className="w-full py-2.5 rounded-xl bg-white/5 hover:bg-white/10 text-gray-400 hover:text-white transition-colors cursor-pointer"
-                  >
-                    Sair da Conta
-                  </button>
-                </div>
-              </Card>
+                <button
+                  type="button"
+                  onClick={() => onGoToDashboard ? onGoToDashboard() : undefined}
+                  className="w-full py-3.5 rounded-xl bg-gradient-to-r from-[#8B24F0] via-[#9d3df3] to-[#8B24F0] hover:brightness-110 text-white font-bold uppercase tracking-wider flex items-center justify-center space-x-2 shadow-[0_0_25px_rgba(139,36,240,0.6)] cursor-pointer hover:scale-[1.01] active:scale-[0.98] transition-all text-xs font-mono"
+                >
+                  <span>Ir para Meu Dashboard</span>
+                  <ArrowRight className="w-4 h-4" />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => logout()}
+                  className="w-full py-2 rounded-xl bg-white/5 hover:bg-white/10 text-gray-400 hover:text-white transition-colors cursor-pointer text-xs font-mono"
+                >
+                  Sair da Conta
+                </button>
+              </div>
             ) : (
               <motion.div
                 initial={{ opacity: 0, y: 55, scale: 0.94, filter: "blur(8px)" }}
@@ -711,24 +678,31 @@ export function ScrollytellingContainer() {
                   </div>
 
                   <div className="flex items-center justify-between text-xs text-gray-400 pt-0.5 select-none">
-                    <label className="flex items-center space-x-2.5 cursor-pointer">
-                      <button
-                        type="button"
-                        role="switch"
-                        aria-checked={rememberMe}
-                        onClick={() => setRememberMe(!rememberMe)}
-                        className={`w-9 h-5 rounded-full p-0.5 transition-colors cursor-pointer ${
-                          rememberMe ? "bg-[#8B24F0]" : "bg-white/20"
+                    <div
+                      role="button"
+                      tabIndex={0}
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        setRememberMe((prev) => !prev);
+                      }}
+                      className="flex items-center space-x-2.5 cursor-pointer group select-none"
+                    >
+                      <div
+                        className={`w-9 h-5 rounded-full p-0.5 transition-colors ${
+                          rememberMe ? "bg-[#8B24F0]" : "bg-white/20 group-hover:bg-white/30"
                         }`}
                       >
                         <div
-                          className={`w-4 h-4 rounded-full bg-white transition-transform ${
+                          className={`w-4 h-4 rounded-full bg-white transition-transform duration-200 ${
                             rememberMe ? "translate-x-4" : "translate-x-0"
                           }`}
                         />
-                      </button>
-                      <span className="text-gray-300">Lembrar de mim</span>
-                    </label>
+                      </div>
+                      <span className={`text-xs transition-colors ${rememberMe ? "text-white font-medium" : "text-gray-400"}`}>
+                        Lembrar de mim
+                      </span>
+                    </div>
 
                     <button
                       type="button"
@@ -787,7 +761,7 @@ export function ScrollytellingContainer() {
                   )}
                   <span className="text-xs font-semibold font-sans">
                     {googleLoading
-                      ? "Conectando ao Google..."
+                      ? "Redirecionando para o Google..."
                       : authTab === "login"
                       ? "Continuar com o Google"
                       : "Cadastrar com o Google"}
@@ -1033,7 +1007,7 @@ export function ScrollytellingContainer() {
                 initial={{ opacity: 0, scale: 0.95 }}
                 whileInView={{ opacity: 1, scale: 1 }}
                 viewport={{ once: false, amount: 0.3 }}
-                className="p-5 rounded-3xl bg-[#0F121C] border border-emerald-500/40 space-y-4 shadow-xl"
+                className="p-5 rounded-3xl bg-[#0F121C] border border-purple-500/30 space-y-4 shadow-xl"
               >
                 <div className="flex items-center space-x-3">
                   <div className="w-10 h-10 rounded-full bg-purple-600/30 border border-purple-400/50 flex items-center justify-center font-mono font-bold text-white text-base">
@@ -1045,15 +1019,14 @@ export function ScrollytellingContainer() {
                   </div>
                 </div>
                 <div className="space-y-2.5 font-mono text-xs">
-                  {currentUser.role === "admin" && (
-                    <a
-                      href="/admin"
-                      className="w-full py-2.5 rounded-xl bg-gradient-to-r from-emerald-600 to-cyan-600 text-white font-bold uppercase tracking-wider flex items-center justify-center space-x-2 text-center text-xs"
-                    >
-                      <ShieldCheck className="w-4 h-4" />
-                      <span>Painel Admin</span>
-                    </a>
-                  )}
+                  <button
+                    type="button"
+                    onClick={() => onGoToDashboard ? onGoToDashboard() : undefined}
+                    className="w-full py-2.5 rounded-xl bg-gradient-to-r from-[#8B24F0] to-purple-600 text-white font-bold uppercase tracking-wider flex items-center justify-center space-x-2 text-center text-xs shadow-[0_0_15px_rgba(139,36,240,0.5)] cursor-pointer"
+                  >
+                    <span>Acessar Meu Dashboard</span>
+                    <ArrowRight className="w-3.5 h-3.5" />
+                  </button>
                   <button
                     type="button"
                     onClick={() => logout()}
@@ -1154,24 +1127,31 @@ export function ScrollytellingContainer() {
                     </div>
 
                     <div className="flex items-center justify-between text-xs text-gray-400 pt-0.5 select-none">
-                      <label className="flex items-center space-x-2.5 cursor-pointer">
-                        <button
-                          type="button"
-                          role="switch"
-                          aria-checked={rememberMe}
-                          onClick={() => setRememberMe(!rememberMe)}
-                          className={`w-9 h-5 rounded-full p-0.5 transition-colors cursor-pointer ${
-                            rememberMe ? "bg-[#8B24F0]" : "bg-white/20"
+                      <div
+                        role="button"
+                        tabIndex={0}
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          setRememberMe((prev) => !prev);
+                        }}
+                        className="flex items-center space-x-2.5 cursor-pointer group select-none"
+                      >
+                        <div
+                          className={`w-9 h-5 rounded-full p-0.5 transition-colors ${
+                            rememberMe ? "bg-[#8B24F0]" : "bg-white/20 group-hover:bg-white/30"
                           }`}
                         >
                           <div
-                            className={`w-4 h-4 rounded-full bg-white transition-transform ${
+                            className={`w-4 h-4 rounded-full bg-white transition-transform duration-200 ${
                               rememberMe ? "translate-x-4" : "translate-x-0"
                             }`}
                           />
-                        </button>
-                        <span className="text-gray-300">Lembrar de mim</span>
-                      </label>
+                        </div>
+                        <span className={`text-xs transition-colors ${rememberMe ? "text-white font-medium" : "text-gray-400"}`}>
+                          Lembrar de mim
+                        </span>
+                      </div>
 
                       <button
                         type="button"
@@ -1229,7 +1209,7 @@ export function ScrollytellingContainer() {
                     )}
                     <span className="text-xs font-semibold font-sans">
                       {googleLoading
-                        ? "Conectando ao Google..."
+                        ? "Redirecionando para o Google..."
                         : authTab === "login"
                         ? "Continuar com o Google"
                         : "Cadastrar com o Google"}

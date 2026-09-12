@@ -3,6 +3,7 @@
 import React, { useEffect, useRef } from "react";
 import * as THREE from "three";
 import type { MotionValue } from "framer-motion";
+import { cn } from "@/lib/utils";
 
 interface Phone3DModelProps {
   highlightBenefits?: boolean;
@@ -574,6 +575,8 @@ export function Phone3DModel({
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
     renderer.toneMappingExposure = 1.25;
+    renderer.domElement.className = "w-full h-full pointer-events-none md:pointer-events-auto touch-pan-y md:touch-none";
+    renderer.domElement.style.touchAction = "pan-y";
     container.appendChild(renderer.domElement);
 
     // 2. Studio Lighting Rig (Sharp Titanium & Sapphire Specular Highlights)
@@ -839,6 +842,7 @@ export function Phone3DModel({
         dragVelocity.x = dy * 0.45;
         dragVelocity.y = dx * 0.45;
       } else {
+        if (e.pointerType === "touch") return;
         const normX = (e.clientX / window.innerWidth) * 2 - 1;
         const normY = (e.clientY / window.innerHeight) * 2 - 1;
         mouseOffsetRef.current = {
@@ -947,11 +951,11 @@ export function Phone3DModel({
   }, []);
 
   return (
-    <div className={className}>
+    <div className={cn("pointer-events-none md:pointer-events-auto", className)}>
       {/* WebGL 3D Canvas Mount Point */}
       <div
         ref={mountRef}
-        className="w-[340px] sm:w-[380px] md:w-[400px] h-[660px] sm:h-[740px] md:h-[780px] flex items-center justify-center pointer-events-auto cursor-grab active:cursor-grabbing select-none touch-none"
+        className="w-[340px] sm:w-[380px] md:w-[400px] h-[660px] sm:h-[740px] md:h-[780px] flex items-center justify-center pointer-events-none md:pointer-events-auto cursor-default md:cursor-grab md:active:cursor-grabbing select-none touch-pan-y md:touch-none"
       />
     </div>
   );

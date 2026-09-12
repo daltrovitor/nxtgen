@@ -1,3 +1,4 @@
+import { createBrowserClient } from "@supabase/ssr";
 import { createClient } from "@supabase/supabase-js";
 
 const supabaseUrl =
@@ -22,15 +23,9 @@ export const isLiveConfigured =
 
 export const isUsingLiveSupabase = isLiveConfigured;
 
-// Browser / Client SDK with RLS enforcement
+// Browser / Client SDK with SSR cookie storage for PKCE OAuth
 export const supabase = isLiveConfigured
-  ? createClient(supabaseUrl, supabaseAnonKey, {
-      auth: {
-        autoRefreshToken: true,
-        persistSession: true,
-        detectSessionInUrl: true,
-      },
-    })
+  ? createBrowserClient(supabaseUrl, supabaseAnonKey)
   : null;
 
 // Server / Admin SDK for secure direct user creation without email confirmation

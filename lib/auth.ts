@@ -55,7 +55,7 @@ class UserStore {
     };
     this.users.set(initialUser.email, initialUser);
 
-    // 2. Administrator account (role: 'admin') - verified role separation
+    // 2. Administrator accounts (role: 'admin') - verified role separation
     const adminSalt = crypto.randomBytes(16).toString("hex");
     const adminPassHash = this.hashPassword("AdminNxtgen2026!", adminSalt);
     const adminUser: StoredUser = {
@@ -73,6 +73,22 @@ class UserStore {
       createdAt: new Date().toISOString(),
     };
     this.users.set(adminUser.email, adminUser);
+
+    const adminUser2: StoredUser = {
+      id: "usr_admin_nxtgen",
+      email: "admin@nxtgen.app",
+      fullName: "Admin NXTGEN",
+      passwordHash: adminPassHash,
+      salt: adminSalt,
+      role: "admin",
+      nxtScore: 9999,
+      nxtLevel: 5,
+      avatarUrl: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=200&h=200&fit=crop&q=80",
+      walletBalance: 15000.00,
+      emailConfirmed: true,
+      createdAt: new Date().toISOString(),
+    };
+    this.users.set(adminUser2.email, adminUser2);
   }
 
   hashPassword(password: string, salt: string): string {
@@ -95,6 +111,20 @@ class UserStore {
     const user = this.findByEmail(idOrEmail) || this.findById(idOrEmail);
     if (!user) return null;
     user.role = newRole;
+    this.users.set(user.email, user);
+    return user;
+  }
+
+  updateUser(
+    idOrEmail: string,
+    updates: Partial<Pick<StoredUser, "nxtLevel" | "nxtScore" | "role" | "walletBalance">>
+  ): StoredUser | null {
+    const user = this.findByEmail(idOrEmail) || this.findById(idOrEmail);
+    if (!user) return null;
+    if (updates.nxtLevel !== undefined) user.nxtLevel = Number(updates.nxtLevel);
+    if (updates.nxtScore !== undefined) user.nxtScore = Number(updates.nxtScore);
+    if (updates.role !== undefined) user.role = updates.role;
+    if (updates.walletBalance !== undefined) user.walletBalance = Number(updates.walletBalance);
     this.users.set(user.email, user);
     return user;
   }
@@ -166,9 +196,9 @@ class UserStore {
 export const userStore = new UserStore();
 
 /**
- * Sign JWT session token
+ * Sign JWT session token with configurable expiration
  */
-export function createSessionToken(user: StoredUser): string {
+export function createSessionToken(user: StoredUser, maxAgeSeconds: number = 7 * 24 * 60 * 60): string {
   const header = Buffer.from(JSON.stringify({ alg: "HS256", typ: "JWT" })).toString("base64url");
   const payload = Buffer.from(
     JSON.stringify({
@@ -177,7 +207,7 @@ export function createSessionToken(user: StoredUser): string {
       name: user.fullName,
       role: user.role,
       iat: Math.floor(Date.now() / 1000),
-      exp: Math.floor(Date.now() / 1000) + 7 * 24 * 60 * 60, // 7 days
+      exp: Math.floor(Date.now() / 1000) + maxAgeSeconds,
     })
   ).toString("base64url");
 
@@ -219,7 +249,7 @@ export function verifySessionToken(token: string): { valid: boolean; payload?: a
 }
 
 /**
- * Get current authenticated user from cookies
+ * Get current authenticated user from cookies, querying Supabase first and falling back to memory
  */
 export async function getCurrentUser(): Promise<StoredUser | null> {
   try {
@@ -230,7 +260,41 @@ export async function getCurrentUser(): Promise<StoredUser | null> {
     const verification = verifySessionToken(token);
     if (!verification.valid || !verification.payload?.sub) return null;
 
-    const user = userStore.findById(verification.payload.sub);
+    const userId = verification.payload.sub;
+
+    // 1. Try querying Supabase public.profiles if supabaseAdmin is available
+    try {
+      const { supabaseAdmin } = await import("@/lib/supabase/client");
+      if (supabaseAdmin) {
+        const { data: profile, error } = await supabaseAdmin
+          .from("profiles")
+          .select("*")
+          .eq("id", userId)
+          .maybeSingle();
+
+        if (profile && !error) {
+          return {
+            id: profile.id,
+            email: profile.email || verification.payload.email || "",
+            fullName: profile.full_name || profile.name || verification.payload.name || "Membro NXTGEN",
+            passwordHash: "",
+            salt: "",
+            role: (profile.role as any) || verification.payload.role || "user",
+            nxtScore: profile.nxt_score ?? 250,
+            nxtLevel: profile.nxt_level ?? 1,
+            avatarUrl: profile.avatar_url || "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=200&h=200&fit=crop&q=80",
+            walletBalance: Number(profile.wallet_balance ?? 0),
+            emailConfirmed: true,
+            createdAt: profile.created_at || new Date().toISOString(),
+          };
+        }
+      }
+    } catch (dbErr) {
+      console.warn("Supabase profile lookup notice:", dbErr);
+    }
+
+    // 2. Fallback to in-memory store (e.g. demo accounts or fallback mode)
+    const user = userStore.findById(userId) || userStore.findByEmail(verification.payload.email);
     return user || null;
   } catch {
     return null;
