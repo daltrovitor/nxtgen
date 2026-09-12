@@ -11,6 +11,7 @@ import { AdminVouchersTab } from "@/components/admin/admin-vouchers-tab";
 import { Benefit, PassMission } from "@/lib/pass-data";
 import { SystemVoucher } from "@/lib/pass-store";
 import { Users, Gift, CheckSquare, Ticket, LogOut, Shield, ArrowUpRight } from "lucide-react";
+import { ThemeToggle } from "@/components/theme-toggle";
 
 type TabKey = "members" | "benefits" | "missions" | "vouchers";
 
@@ -96,9 +97,9 @@ export default function AdminPage() {
   // 1. Loading screen
   if (isAdminAuthenticated === null) {
     return (
-      <div className="min-h-screen bg-[#000000] flex flex-col items-center justify-center text-white font-mono space-y-3">
+      <div className="min-h-screen bg-background text-foreground flex flex-col items-center justify-center font-mono space-y-3">
         <div className="w-7 h-7 border-2 border-[#8B24F0] border-t-transparent rounded-full animate-spin" />
-        <p className="text-xs text-gray-400">Verificando privilégios administrativos...</p>
+        <p className="text-xs text-muted-foreground">Verificando privilégios administrativos...</p>
       </div>
     );
   }
@@ -110,14 +111,14 @@ export default function AdminPage() {
 
   // 3. Authenticated Admin Dashboard
   return (
-    <div className="min-h-screen bg-[#000000] text-[#F3F4F6] pb-24 font-sans selection:bg-[#8B24F0] selection:text-white">
+    <div className="min-h-screen bg-background text-foreground pb-24 font-sans selection:bg-[#8B24F0] selection:text-white transition-colors duration-200">
       {/* Top Admin Header */}
-      <header className="sticky top-0 z-40 bg-[#090A0F]/95 backdrop-blur-md border-b border-white/10">
+      <header className="sticky top-0 z-40 bg-card/95 backdrop-blur-md border-b border-border transition-colors">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
           {/* Logo & Brand */}
           <div className="flex items-center gap-3">
-            <Link href="/admin" className="flex items-center gap-2.5">
-              <span className="font-heading font-black text-xl tracking-tight text-white">
+            <Link href="/" className="flex items-center gap-2.5">
+              <span className="font-heading font-black text-xl tracking-tight text-foreground">
                 NXTGEN
               </span>
               <span className="px-2 py-0.5 rounded-md bg-[#8B24F0]/20 border border-[#8B24F0]/40 text-[10px] font-mono font-bold text-[#C084FC] uppercase tracking-wider">
@@ -125,29 +126,34 @@ export default function AdminPage() {
               </span>
             </Link>
 
-            <span className="hidden md:inline-block text-xs text-gray-500 font-mono pl-2 border-l border-white/10">
+            <span className="hidden md:inline-block text-xs text-muted-foreground font-mono pl-2 border-l border-border">
               adminng.nxtgen.app
             </span>
           </div>
 
           {/* User Profile & Actions */}
           <div className="flex items-center gap-3">
-            <Link
-              href="/dashboard"
+            <a
+              href={
+                typeof window !== "undefined" && window.location.hostname.includes("localhost")
+                  ? "http://localhost:3000"
+                  : "https://nxtgen.app"
+              }
               target="_blank"
-              className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-xs font-mono text-gray-300 hover:text-white border border-white/10 transition-colors"
+              rel="noopener noreferrer"
+              className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-muted/60 hover:bg-muted text-xs font-mono text-muted-foreground hover:text-foreground border border-border transition-colors"
               title="Abrir o painel do associado em nova aba"
             >
               <span>Ver Dashboard Usuário</span>
-              <ArrowUpRight className="w-3.5 h-3.5 text-gray-400" />
-            </Link>
+              <ArrowUpRight className="w-3.5 h-3.5 text-muted-foreground" />
+            </a>
 
-            <div className="flex items-center gap-2 pl-2 border-l border-white/10">
+            <div className="flex items-center gap-2 pl-2 border-l border-border">
               <div className="text-right hidden sm:block">
-                <div className="text-xs font-semibold text-white font-heading leading-tight">
+                <div className="text-xs font-semibold text-foreground font-heading leading-tight">
                   {adminUser?.name || "Administrador"}
                 </div>
-                <div className="text-[10px] text-gray-400 font-mono">
+                <div className="text-[10px] text-muted-foreground font-mono">
                   {adminUser?.email || "admin@nxtgen.app"}
                 </div>
               </div>
@@ -156,9 +162,11 @@ export default function AdminPage() {
                 <Shield className="w-4 h-4" />
               </div>
 
+              <ThemeToggle variant="header" />
+
               <button
                 onClick={handleLogout}
-                className="p-2 rounded-lg bg-white/5 hover:bg-white/10 text-gray-400 hover:text-white border border-white/10 transition-colors cursor-pointer"
+                className="p-2 rounded-lg bg-muted/60 hover:bg-muted text-muted-foreground hover:text-foreground border border-border transition-colors cursor-pointer"
                 title="Sair da sessão administrativa"
               >
                 <LogOut className="w-4 h-4" />
@@ -168,13 +176,13 @@ export default function AdminPage() {
         </div>
 
         {/* Tab Navigation Bar */}
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 flex overflow-x-auto scrollbar-none border-t border-white/5">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 flex overflow-x-auto scrollbar-none border-t border-border">
           <button
             onClick={() => setActiveTab("members")}
             className={`inline-flex items-center gap-2 py-3 px-4 border-b-2 text-xs font-heading font-bold uppercase tracking-wider transition-all whitespace-nowrap cursor-pointer ${
               activeTab === "members"
-                ? "border-[#8B24F0] text-white bg-[#8B24F0]/10"
-                : "border-transparent text-gray-400 hover:text-white hover:bg-white/[0.02]"
+                ? "border-[#8B24F0] text-purple-700 dark:text-white bg-purple-50 dark:bg-[#8B24F0]/10"
+                : "border-transparent text-muted-foreground hover:text-foreground hover:bg-muted/40"
             }`}
           >
             <Users className="w-4 h-4 text-[#8B24F0]" />
@@ -185,8 +193,8 @@ export default function AdminPage() {
             onClick={() => setActiveTab("benefits")}
             className={`inline-flex items-center gap-2 py-3 px-4 border-b-2 text-xs font-heading font-bold uppercase tracking-wider transition-all whitespace-nowrap cursor-pointer ${
               activeTab === "benefits"
-                ? "border-[#8B24F0] text-white bg-[#8B24F0]/10"
-                : "border-transparent text-gray-400 hover:text-white hover:bg-white/[0.02]"
+                ? "border-[#8B24F0] text-purple-700 dark:text-white bg-purple-50 dark:bg-[#8B24F0]/10"
+                : "border-transparent text-muted-foreground hover:text-foreground hover:bg-muted/40"
             }`}
           >
             <Gift className="w-4 h-4 text-[#8B24F0]" />
@@ -197,8 +205,8 @@ export default function AdminPage() {
             onClick={() => setActiveTab("missions")}
             className={`inline-flex items-center gap-2 py-3 px-4 border-b-2 text-xs font-heading font-bold uppercase tracking-wider transition-all whitespace-nowrap cursor-pointer ${
               activeTab === "missions"
-                ? "border-[#8B24F0] text-white bg-[#8B24F0]/10"
-                : "border-transparent text-gray-400 hover:text-white hover:bg-white/[0.02]"
+                ? "border-[#8B24F0] text-purple-700 dark:text-white bg-purple-50 dark:bg-[#8B24F0]/10"
+                : "border-transparent text-muted-foreground hover:text-foreground hover:bg-muted/40"
             }`}
           >
             <CheckSquare className="w-4 h-4 text-[#8B24F0]" />
@@ -209,8 +217,8 @@ export default function AdminPage() {
             onClick={() => setActiveTab("vouchers")}
             className={`inline-flex items-center gap-2 py-3 px-4 border-b-2 text-xs font-heading font-bold uppercase tracking-wider transition-all whitespace-nowrap cursor-pointer ${
               activeTab === "vouchers"
-                ? "border-[#8B24F0] text-white bg-[#8B24F0]/10"
-                : "border-transparent text-gray-400 hover:text-white hover:bg-white/[0.02]"
+                ? "border-[#8B24F0] text-purple-700 dark:text-white bg-purple-50 dark:bg-[#8B24F0]/10"
+                : "border-transparent text-muted-foreground hover:text-foreground hover:bg-muted/40"
             }`}
           >
             <Ticket className="w-4 h-4 text-[#8B24F0]" />

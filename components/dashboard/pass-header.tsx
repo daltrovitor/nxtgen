@@ -4,6 +4,7 @@ import React from "react";
 import Image from "next/image";
 import { LogOut, QrCode } from "lucide-react";
 import { User } from "@/hooks/use-auth";
+import { ThemeToggle } from "@/components/theme-toggle";
 
 interface PassHeaderProps {
   user: User;
@@ -21,7 +22,7 @@ export function PassHeader({
   onOpenVouchers,
 }: PassHeaderProps) {
   return (
-    <header className="sticky top-0 z-40 bg-[#000000] border-b border-white/10">
+    <header className="sticky top-0 z-40 bg-background/95 backdrop-blur-md border-b border-border transition-colors">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
         {/* Brand Logo & Name */}
         <div className="flex items-center space-x-3 cursor-pointer" onClick={onViewShowcase}>
@@ -39,14 +40,14 @@ export function PassHeader({
           </span>
         </div>
 
-        {/* Right Section: Vouchers Button, User info, Logout */}
-        <div className="flex items-center space-x-2 sm:space-x-4">
+        {/* Right Section: Vouchers Button, User info, ThemeToggle, Logout */}
+        <div className="flex items-center space-x-2 sm:space-x-3">
           {/* Meus Vouchers Button */}
           <button
             onClick={onOpenVouchers}
-            className="px-3 py-1.5 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 text-white font-heading text-xs font-semibold flex items-center space-x-2 transition-colors cursor-pointer"
+            className="px-3 py-1.5 rounded-lg bg-card hover:bg-muted border border-border text-foreground font-heading text-xs font-semibold flex items-center space-x-2 transition-colors cursor-pointer shadow-sm"
           >
-            <QrCode className="w-3.5 h-3.5 text-purple-400" />
+            <QrCode className="w-3.5 h-3.5 text-purple-600 dark:text-purple-400" />
             <span>Meus Vouchers</span>
             {activeVouchersCount > 0 && (
               <span className="px-1.5 py-0.2 rounded bg-[#8B24F0] text-white text-[10px] font-bold">
@@ -57,19 +58,22 @@ export function PassHeader({
 
           {/* User Name & Level */}
           <div className="flex items-center space-x-2 text-xs font-heading">
-            <span className="text-gray-300 font-medium hidden sm:inline">
-              {(user?.name || (user as any)?.fullName || "Membro").split(" ")[0]}
+            <span className="text-muted-foreground font-medium hidden sm:inline">
+              {(user?.name || (user as { fullName?: string })?.fullName || "Membro").split(" ")[0]}
             </span>
-            <span className="px-2 py-0.5 rounded bg-white/5 border border-white/10 text-purple-300 text-[11px] font-bold">
+            <span className="px-2 py-0.5 rounded bg-purple-500/10 border border-purple-500/20 text-purple-600 dark:text-purple-400 text-[11px] font-bold">
               Level {user.nxtLevel || 3}
             </span>
           </div>
+
+          {/* Theme Toggle */}
+          <ThemeToggle variant="header" />
 
           {/* Logout */}
           <button
             onClick={onLogout}
             title="Sair"
-            className="p-1.5 rounded-lg text-gray-400 hover:text-white transition-colors cursor-pointer"
+            className="p-2 rounded-xl text-muted-foreground hover:text-foreground transition-colors cursor-pointer border border-transparent hover:border-border"
           >
             <LogOut className="w-4 h-4" />
           </button>

@@ -40,9 +40,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (res.ok) {
         const data = await res.json();
         if (data.user) {
+          // Never auto-logout administrative or partner accounts
+          if (data.user.role === "admin" || data.user.role === "partner") {
+            if (typeof window !== "undefined") {
+              sessionStorage.setItem("nxtgen_tab_active", "true");
+              localStorage.setItem("nxtgen_remember_me", "true");
+            }
+            setUser(data.user);
+            setLoading(false);
+            return;
+          }
+
           const serverRemembered = typeof data.rememberMe === "boolean" ? data.rememberMe : isRemembered;
-          // If the user did not check "lembrar de mim" and left/closed the page:
-          if (!serverRemembered && !isTabActive) {
+          // Only auto-logout if rememberMe is explicitly false AND tab is not active
+          if (serverRemembered === false && !isTabActive && !isRemembered) {
             await fetch("/api/auth/logout", { method: "POST" });
             if (typeof window !== "undefined") {
               localStorage.removeItem("nxtgen_remember_me");

@@ -4,29 +4,39 @@ import { getCurrentUser, verifySessionToken, AUTH_COOKIE_NAME } from "@/lib/auth
 
 export async function GET(req: NextRequest) {
   try {
-    const cookieStore = await cookies();
-    const token = cookieStore.get(AUTH_COOKIE_NAME)?.value;
+    let token = req.cookies.get(AUTH_COOKIE_NAME)?.value;
+    if (!token) {
+      const raw = req.headers.get("cookie") || "";
+      const match = raw.match(new RegExp(`(?:^|;\\s*)${AUTH_COOKIE_NAME}=([^;]+)`));
+      if (match) token = match[1];
+    }
+    if (!token) {
+      try {
+        const cookieStore = await cookies();
+        token = cookieStore.get(AUTH_COOKIE_NAME)?.value;
+      } catch {}
+    }
 
     if (!token) {
       return NextResponse.json(
-        { authenticated: false, error: "Nenhuma sessão ativa." },
-        { status: 401 }
+        { authenticated: false, isAdmin: false, error: "Nenhuma sessão ativa." },
+        { status: 200 }
       );
     }
 
     const verification = verifySessionToken(token);
     if (!verification.valid || !verification.payload) {
       return NextResponse.json(
-        { authenticated: false, error: "Sessão expirada ou inválida." },
-        { status: 401 }
+        { authenticated: false, isAdmin: false, error: "Sessão expirada ou inválida." },
+        { status: 200 }
       );
     }
 
-    const currentUser = await getCurrentUser();
+    const currentUser = await getCurrentUser(req);
     if (!currentUser) {
       return NextResponse.json(
-        { authenticated: false, error: "Usuário não encontrado." },
-        { status: 404 }
+        { authenticated: false, isAdmin: false, error: "Usuário não encontrado." },
+        { status: 200 }
       );
     }
 
@@ -43,7 +53,7 @@ export async function GET(req: NextRequest) {
             role: currentUser.role,
           },
         },
-        { status: 403 }
+        { status: 200 }
       );
     }
 
@@ -61,8 +71,8 @@ export async function GET(req: NextRequest) {
     });
   } catch (error: any) {
     return NextResponse.json(
-      { error: error.message || "Erro ao consultar sessão administrativa." },
-      { status: 500 }
+      { authenticated: false, isAdmin: false, error: error.message || "Erro ao consultar sessão administrativa." },
+      { status: 200 }
     );
   }
 }

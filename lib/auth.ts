@@ -1,5 +1,6 @@
 import crypto from "crypto";
 import { cookies } from "next/headers";
+import type { NextRequest } from "next/server";
 
 const JWT_SECRET = process.env.JWT_SECRET_OR_HMAC_KEY || "nxtgen_production_hardened_secret_9988_xyz";
 const AUTH_COOKIE_NAME = "nxtgen_session";
@@ -89,6 +90,41 @@ class UserStore {
       createdAt: new Date().toISOString(),
     };
     this.users.set(adminUser2.email, adminUser2);
+
+    const adminUser3: StoredUser = {
+      id: "6bbefe27-ecaa-4cd6-ab89-988d054dd5b3",
+      email: "adminv@nxtgen.com",
+      fullName: "Vitor Admin",
+      passwordHash: adminPassHash,
+      salt: adminSalt,
+      role: "admin",
+      nxtScore: 9999,
+      nxtLevel: 5,
+      avatarUrl: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=200&h=200&fit=crop&q=80",
+      walletBalance: 15000.00,
+      emailConfirmed: true,
+      createdAt: new Date().toISOString(),
+    };
+    this.users.set(adminUser3.email, adminUser3);
+
+    // 3. Partner demo account (role: 'partner')
+    const partnerSalt = crypto.randomBytes(16).toString("hex");
+    const partnerPassHash = this.hashPassword("PartnerNxtgen2026!", partnerSalt);
+    const partnerUser: StoredUser = {
+      id: "usr_partner_demo",
+      email: "partner@nxtgen.app",
+      fullName: "Parceiro Oficial NXTGEN",
+      passwordHash: partnerPassHash,
+      salt: partnerSalt,
+      role: "partner",
+      nxtScore: 1500,
+      nxtLevel: 3,
+      avatarUrl: "https://images.unsplash.com/photo-1570295999919-56ceb5ecca61?w=200&h=200&fit=crop&q=80",
+      walletBalance: 0,
+      emailConfirmed: true,
+      createdAt: new Date().toISOString(),
+    };
+    this.users.set(partnerUser.email, partnerUser);
   }
 
   hashPassword(password: string, salt: string): string {
@@ -107,7 +143,7 @@ class UserStore {
     return Array.from(this.users.values());
   }
 
-  updateRole(idOrEmail: string, newRole: "user" | "admin"): StoredUser | null {
+  updateRole(idOrEmail: string, newRole: "user" | "partner" | "staff" | "admin"): StoredUser | null {
     const user = this.findByEmail(idOrEmail) || this.findById(idOrEmail);
     if (!user) return null;
     user.role = newRole;
@@ -251,10 +287,26 @@ export function verifySessionToken(token: string): { valid: boolean; payload?: a
 /**
  * Get current authenticated user from cookies, querying Supabase first and falling back to memory
  */
-export async function getCurrentUser(): Promise<StoredUser | null> {
+export async function getCurrentUser(req?: NextRequest): Promise<StoredUser | null> {
   try {
-    const cookieStore = await cookies();
-    const token = cookieStore.get(AUTH_COOKIE_NAME)?.value;
+    let token: string | undefined;
+
+    if (req) {
+      token = req.cookies.get(AUTH_COOKIE_NAME)?.value;
+      if (!token) {
+        const raw = req.headers.get("cookie") || "";
+        const match = raw.match(new RegExp(`(?:^|;\\s*)${AUTH_COOKIE_NAME}=([^;]+)`));
+        if (match) token = match[1];
+      }
+    }
+
+    if (!token) {
+      try {
+        const cookieStore = await cookies();
+        token = cookieStore.get(AUTH_COOKIE_NAME)?.value;
+      } catch {}
+    }
+
     if (!token) return null;
 
     const verification = verifySessionToken(token);
@@ -266,20 +318,52 @@ export async function getCurrentUser(): Promise<StoredUser | null> {
     try {
       const { supabaseAdmin } = await import("@/lib/supabase/client");
       if (supabaseAdmin) {
-        const { data: profile, error } = await supabaseAdmin
-          .from("profiles")
-          .select("*")
-          .eq("id", userId)
-          .maybeSingle();
+        const isUuid = userId && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(userId);
+        let profile = null;
+        if (isUuid) {
+          const { data } = await supabaseAdmin
+            .from("profiles")
+            .select("*")
+            .eq("id", userId)
+            .maybeSingle();
+          profile = data;
+        }
+        if (!profile && verification.payload.email) {
+          const { data } = await supabaseAdmin
+            .from("profiles")
+            .select("*")
+            .eq("email", verification.payload.email.toLowerCase().trim())
+            .maybeSingle();
+          profile = data;
+        }
 
-        if (profile && !error) {
+        if (profile) {
+          let userRole = (profile.role as any) || verification.payload.role || "user";
+          const userEmail = (profile.email || verification.payload.email || "").toLowerCase().trim();
+          if (
+            userRole !== "admin" &&
+            (userEmail === "adminv@nxtgen.com" ||
+             userEmail === "admin@nxtgen.app" ||
+             userEmail === "vitorrocketleague@gmail.com")
+          ) {
+            userRole = "admin";
+          }
+          if (userRole === "user" && isUuid) {
+            try {
+              const { data: authUser } = await supabaseAdmin.auth.admin.getUserById(userId);
+              if (authUser?.user?.user_metadata?.role) {
+                userRole = authUser.user.user_metadata.role;
+              }
+            } catch {}
+          }
+
           return {
             id: profile.id,
             email: profile.email || verification.payload.email || "",
             fullName: profile.full_name || profile.name || verification.payload.name || "Membro NXTGEN",
             passwordHash: "",
             salt: "",
-            role: (profile.role as any) || verification.payload.role || "user",
+            role: userRole,
             nxtScore: profile.nxt_score ?? 250,
             nxtLevel: profile.nxt_level ?? 1,
             avatarUrl: profile.avatar_url || "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=200&h=200&fit=crop&q=80",
@@ -302,3 +386,198 @@ export async function getCurrentUser(): Promise<StoredUser | null> {
 }
 
 export { AUTH_COOKIE_NAME };
+
+/**
+ * Universal verification for admin requests supporting req.cookies, headers, and next/headers
+ */
+export async function verifyAdminRequest(req?: NextRequest): Promise<{
+  authorized: boolean;
+  status: number;
+  error?: string;
+  adminUser?: any;
+}> {
+  let token: string | undefined;
+
+  if (req) {
+    token = req.cookies.get(AUTH_COOKIE_NAME)?.value;
+  }
+  if (!token && req) {
+    const raw = req.headers.get("cookie") || "";
+    const match = raw.match(new RegExp(`(?:^|;\\s*)${AUTH_COOKIE_NAME}=([^;]+)`));
+    if (match) token = match[1];
+  }
+  if (!token) {
+    try {
+      const cookieStore = await cookies();
+      token = cookieStore.get(AUTH_COOKIE_NAME)?.value;
+    } catch {}
+  }
+
+  if (!token) {
+    return { authorized: false, status: 401, error: "Não autenticado." };
+  }
+
+  const { valid, payload } = verifySessionToken(token);
+  if (!valid || !payload) {
+    return { authorized: false, status: 401, error: "Sessão inválida ou expirada." };
+  }
+
+  // 1. Direct role check
+  let role = payload.role;
+
+  // 2. Admin email whitelist
+  const userEmail = (payload.email || "").toLowerCase().trim();
+  if (
+    userEmail === "adminv@nxtgen.com" ||
+    userEmail === "admin@nxtgen.app" ||
+    userEmail === "vitorrocketleague@gmail.com"
+  ) {
+    role = "admin";
+  }
+
+  // 3. Supabase profiles check
+  if (role !== "admin") {
+    try {
+      const { supabaseAdmin } = await import("@/lib/supabase/client");
+      if (supabaseAdmin) {
+        const isUuid = payload.sub && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(payload.sub);
+        let p = null;
+        if (isUuid) {
+          const { data } = await supabaseAdmin
+            .from("profiles")
+            .select("role")
+            .eq("id", payload.sub)
+            .maybeSingle();
+          p = data;
+        }
+        if (!p && userEmail) {
+          const { data } = await supabaseAdmin
+            .from("profiles")
+            .select("role")
+            .eq("email", userEmail)
+            .maybeSingle();
+          p = data;
+        }
+
+        if (p?.role === "admin") {
+          role = "admin";
+        } else if (isUuid) {
+          const { data: authUser } = await supabaseAdmin.auth.admin.getUserById(payload.sub);
+          if (authUser?.user?.user_metadata?.role === "admin") {
+            role = "admin";
+          }
+        }
+      }
+    } catch {}
+  }
+
+  // 4. In-memory userStore fallback
+  if (role !== "admin") {
+    const memUser = (payload.sub ? userStore.findById(payload.sub) : null) || (userEmail ? userStore.findByEmail(userEmail) : null);
+    if (memUser?.role === "admin") {
+      role = "admin";
+    }
+  }
+
+  if (role !== "admin") {
+    return {
+      authorized: false,
+      status: 403,
+      error: "Acesso Negado. Requer privilégios de administrador (role = 'admin').",
+    };
+  }
+
+  return { authorized: true, status: 200, adminUser: { ...payload, role: "admin" } };
+}
+
+/**
+ * Universal verification for partner requests supporting req.cookies, headers, and next/headers
+ */
+export async function verifyPartnerRequest(req?: NextRequest): Promise<{
+  authorized: boolean;
+  status: number;
+  error?: string;
+  partnerUser?: any;
+}> {
+  let token: string | undefined;
+
+  if (req) {
+    token = req.cookies.get(AUTH_COOKIE_NAME)?.value;
+  }
+  if (!token && req) {
+    const raw = req.headers.get("cookie") || "";
+    const match = raw.match(new RegExp(`(?:^|;\\s*)${AUTH_COOKIE_NAME}=([^;]+)`));
+    if (match) token = match[1];
+  }
+  if (!token) {
+    try {
+      const cookieStore = await cookies();
+      token = cookieStore.get(AUTH_COOKIE_NAME)?.value;
+    } catch {}
+  }
+
+  if (!token) {
+    return { authorized: false, status: 401, error: "Não autenticado." };
+  }
+
+  const { valid, payload } = verifySessionToken(token);
+  if (!valid || !payload) {
+    return { authorized: false, status: 401, error: "Sessão inválida ou expirada." };
+  }
+
+  let role = payload.role;
+  const userEmail = payload.email?.toLowerCase().trim();
+
+  // 1. Fallback to Supabase if not yet partner
+  if (role !== "partner" && payload.sub) {
+    try {
+      const { supabaseAdmin } = await import("@/lib/supabase/client");
+      if (supabaseAdmin) {
+        const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(payload.sub);
+        let p: any = null;
+        if (isUuid) {
+          const { data } = await supabaseAdmin
+            .from("profiles")
+            .select("role")
+            .eq("id", payload.sub)
+            .maybeSingle();
+          p = data;
+        } else if (userEmail) {
+          const { data } = await supabaseAdmin
+            .from("profiles")
+            .select("role")
+            .eq("email", userEmail)
+            .maybeSingle();
+          p = data;
+        }
+
+        if (p?.role === "partner") {
+          role = "partner";
+        } else if (isUuid) {
+          const { data: authUser } = await supabaseAdmin.auth.admin.getUserById(payload.sub);
+          if (authUser?.user?.user_metadata?.role === "partner") {
+            role = "partner";
+          }
+        }
+      }
+    } catch {}
+  }
+
+  // 2. Fallback to in-memory userStore
+  if (role !== "partner") {
+    const memUser = (payload.sub ? userStore.findById(payload.sub) : null) || (userEmail ? userStore.findByEmail(userEmail) : null);
+    if (memUser?.role === "partner") {
+      role = "partner";
+    }
+  }
+
+  if (role !== "partner") {
+    return {
+      authorized: false,
+      status: 403,
+      error: "Acesso Negado. Requer privilégios de parceiro (role = 'partner').",
+    };
+  }
+
+  return { authorized: true, status: 200, partnerUser: { ...payload, role } };
+}

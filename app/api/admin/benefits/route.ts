@@ -1,36 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
-import { cookies } from "next/headers";
-import { verifySessionToken, AUTH_COOKIE_NAME } from "@/lib/auth";
+import { verifyAdminRequest } from "@/lib/auth";
 import { passStore } from "@/lib/pass-store";
 import { supabaseAdmin } from "@/lib/supabase/client";
 
-async function verifyAdminAuth() {
-  const cookieStore = await cookies();
-  const token = cookieStore.get(AUTH_COOKIE_NAME)?.value;
+// Safety alias in case any handler calls verifyAdminAuth
+const verifyAdminAuth = (req?: NextRequest) => verifyAdminRequest(req);
 
-  if (!token) {
-    return { authorized: false, status: 401, error: "Não autenticado." };
-  }
-
-  const { valid, payload } = verifySessionToken(token);
-  if (!valid || !payload) {
-    return { authorized: false, status: 401, error: "Sessão inválida ou expirada." };
-  }
-
-  if (payload.role !== "admin") {
-    return {
-      authorized: false,
-      status: 403,
-      error: "Acesso Negado. Requer privilégios de administrador (role = 'admin').",
-    };
-  }
-
-  return { authorized: true, adminUser: payload };
-}
-
-export async function GET() {
+export async function GET(req: NextRequest) {
   try {
-    const auth = await verifyAdminAuth();
+    const auth = await verifyAdminRequest(req);
     if (!auth.authorized) {
       return NextResponse.json({ error: auth.error }, { status: auth.status });
     }
@@ -57,6 +35,7 @@ export async function GET() {
           minNxtLevel: b.min_nxt_level || 1,
           terms: Array.isArray(b.terms) ? b.terms : [b.terms || "Apresente o QR Code no balcão."],
         }));
+        passStore.setBenefits(mapped);
         return NextResponse.json({ success: true, benefits: mapped });
       }
     }
@@ -74,7 +53,7 @@ export async function GET() {
 
 export async function POST(req: NextRequest) {
   try {
-    const auth = await verifyAdminAuth();
+    const auth = await verifyAdminRequest(req);
     if (!auth.authorized) {
       return NextResponse.json({ error: auth.error }, { status: auth.status });
     }
@@ -104,47 +83,54 @@ export async function POST(req: NextRequest) {
 
     // 1. Try Supabase
     if (supabaseAdmin) {
-      const { data: inserted, error } = await supabaseAdmin
-        .from("benefits")
-        .insert({
-          partner_name: partnerName.trim(),
-          partner_logo: partnerLogo?.trim() || null,
-          partner_banner: partnerBanner?.trim() || null,
-          partner_location: partnerLocation?.trim() || "São Paulo, SP",
-          category_id: categoryId.trim(),
-          title: title.trim(),
-          description: description?.trim() || "",
-          discount_label: discountLabel.trim(),
-          min_nxt_level: Number(minNxtLevel) || 1,
-          terms: termsArray,
-          is_active: true,
-        })
-        .select()
-        .single();
+      try {
+        const { data: inserted, error } = await supabaseAdmin
+          .from("benefits")
+          .insert({
+            partner_name: partnerName.trim(),
+            partner_logo: partnerLogo?.trim() || null,
+            partner_banner: partnerBanner?.trim() || null,
+            partner_location: partnerLocation?.trim() || "São Paulo, SP",
+            category_id: categoryId.trim(),
+            title: title.trim(),
+            description: description?.trim() || "",
+            discount_label: discountLabel.trim(),
+            min_nxt_level: Number(minNxtLevel) || 1,
+            terms: termsArray,
+            is_active: true,
+          })
+          .select()
+          .single();
 
-      if (!error && inserted) {
-        const benefitObj = {
-          id: inserted.id,
-          partnerId: inserted.partner_id || inserted.id,
-          partnerName: inserted.partner_name,
-          partnerLogo: inserted.partner_logo,
-          partnerBanner: inserted.partner_banner,
-          partnerLocation: inserted.partner_location,
-          categoryId: inserted.category_id,
-          title: inserted.title,
-          description: inserted.description,
-          discountLabel: inserted.discount_label,
-          minNxtLevel: inserted.min_nxt_level,
-          terms: inserted.terms,
-        };
-        // Also keep memory store synced
-        passStore.createBenefit(benefitObj);
+        if (!error && inserted) {
+          const benefitObj = {
+            id: inserted.id,
+            partnerId: inserted.partner_id || inserted.id,
+            partnerName: inserted.partner_name,
+            partnerLogo: inserted.partner_logo,
+            partnerBanner: inserted.partner_banner,
+            partnerLocation: inserted.partner_location,
+            categoryId: inserted.category_id,
+            title: inserted.title,
+            description: inserted.description,
+            discountLabel: inserted.discount_label,
+            minNxtLevel: inserted.min_nxt_level,
+            terms: inserted.terms,
+          };
+          // Also keep memory store synced
+          passStore.createBenefit(benefitObj);
 
-        return NextResponse.json({
-          success: true,
-          message: "Benefício criado no Supabase com sucesso!",
-          benefit: benefitObj,
-        });
+          return NextResponse.json({
+            success: true,
+            message: "Benefício criado no Supabase com sucesso!",
+            benefit: benefitObj,
+          });
+        }
+        if (error) {
+          console.warn("[Admin Benefits API] Supabase insert failed, falling back to passStore:", error.message);
+        }
+      } catch (err: any) {
+        console.warn("[Admin Benefits API] Supabase insert exception, falling back to passStore:", err.message);
       }
     }
 
@@ -178,7 +164,7 @@ export async function POST(req: NextRequest) {
 
 export async function PUT(req: NextRequest) {
   try {
-    const auth = await verifyAdminAuth();
+    const auth = await verifyAdminRequest(req);
     if (!auth.authorized) {
       return NextResponse.json({ error: auth.error }, { status: auth.status });
     }
@@ -192,32 +178,39 @@ export async function PUT(req: NextRequest) {
 
     // 1. Try Supabase
     if (supabaseAdmin) {
-      const dbUpdates: Record<string, any> = {};
-      if (updates.partnerName) dbUpdates.partner_name = updates.partnerName.trim();
-      if (updates.partnerLogo !== undefined) dbUpdates.partner_logo = updates.partnerLogo;
-      if (updates.partnerBanner !== undefined) dbUpdates.partner_banner = updates.partnerBanner;
-      if (updates.partnerLocation) dbUpdates.partner_location = updates.partnerLocation.trim();
-      if (updates.categoryId) dbUpdates.category_id = updates.categoryId.trim();
-      if (updates.title) dbUpdates.title = updates.title.trim();
-      if (updates.description !== undefined) dbUpdates.description = updates.description.trim();
-      if (updates.discountLabel) dbUpdates.discount_label = updates.discountLabel.trim();
-      if (updates.minNxtLevel !== undefined) dbUpdates.min_nxt_level = Number(updates.minNxtLevel);
-      if (updates.terms) dbUpdates.terms = Array.isArray(updates.terms) ? updates.terms : [updates.terms];
+      try {
+        const dbUpdates: Record<string, any> = {};
+        if (updates.partnerName) dbUpdates.partner_name = updates.partnerName.trim();
+        if (updates.partnerLogo !== undefined) dbUpdates.partner_logo = updates.partnerLogo;
+        if (updates.partnerBanner !== undefined) dbUpdates.partner_banner = updates.partnerBanner;
+        if (updates.partnerLocation) dbUpdates.partner_location = updates.partnerLocation.trim();
+        if (updates.categoryId) dbUpdates.category_id = updates.categoryId.trim();
+        if (updates.title) dbUpdates.title = updates.title.trim();
+        if (updates.description !== undefined) dbUpdates.description = updates.description.trim();
+        if (updates.discountLabel) dbUpdates.discount_label = updates.discountLabel.trim();
+        if (updates.minNxtLevel !== undefined) dbUpdates.min_nxt_level = Number(updates.minNxtLevel);
+        if (updates.terms) dbUpdates.terms = Array.isArray(updates.terms) ? updates.terms : [updates.terms];
 
-      const { data: updated, error } = await supabaseAdmin
-        .from("benefits")
-        .update(dbUpdates)
-        .eq("id", id)
-        .select()
-        .single();
+        const { data: updated, error } = await supabaseAdmin
+          .from("benefits")
+          .update(dbUpdates)
+          .eq("id", id)
+          .select()
+          .single();
 
-      if (!error && updated) {
-        passStore.updateBenefit(id, updates);
-        return NextResponse.json({
-          success: true,
-          message: "Benefício atualizado no Supabase com sucesso!",
-          benefit: updated,
-        });
+        if (!error && updated) {
+          passStore.updateBenefit(id, updates);
+          return NextResponse.json({
+            success: true,
+            message: "Benefício atualizado no Supabase com sucesso!",
+            benefit: updated,
+          });
+        }
+        if (error) {
+          console.warn("[Admin Benefits API] Supabase update warning:", error.message);
+        }
+      } catch (err: any) {
+        console.warn("[Admin Benefits API] Supabase update exception:", err.message);
       }
     }
 
@@ -242,7 +235,7 @@ export async function PUT(req: NextRequest) {
 
 export async function DELETE(req: NextRequest) {
   try {
-    const auth = await verifyAdminAuth();
+    const auth = await verifyAdminRequest(req);
     if (!auth.authorized) {
       return NextResponse.json({ error: auth.error }, { status: auth.status });
     }
@@ -256,13 +249,20 @@ export async function DELETE(req: NextRequest) {
 
     // 1. Try Supabase
     if (supabaseAdmin) {
-      const { error } = await supabaseAdmin.from("benefits").delete().eq("id", id);
-      if (!error) {
-        passStore.deleteBenefit(id);
-        return NextResponse.json({
-          success: true,
-          message: "Benefício removido do Supabase com sucesso!",
-        });
+      try {
+        const { error } = await supabaseAdmin.from("benefits").delete().eq("id", id);
+        if (!error) {
+          passStore.deleteBenefit(id);
+          return NextResponse.json({
+            success: true,
+            message: "Benefício removido do Supabase com sucesso!",
+          });
+        }
+        if (error) {
+          console.warn("[Admin Benefits API] Supabase delete warning:", error.message);
+        }
+      } catch (err: any) {
+        console.warn("[Admin Benefits API] Supabase delete exception:", err.message);
       }
     }
 

@@ -1,36 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
-import { cookies } from "next/headers";
-import { verifySessionToken, AUTH_COOKIE_NAME } from "@/lib/auth";
+import { verifyAdminRequest } from "@/lib/auth";
 import { passStore } from "@/lib/pass-store";
 import { supabaseAdmin } from "@/lib/supabase/client";
 
-async function verifyAdminAuth() {
-  const cookieStore = await cookies();
-  const token = cookieStore.get(AUTH_COOKIE_NAME)?.value;
-
-  if (!token) {
-    return { authorized: false, status: 401, error: "Não autenticado." };
-  }
-
-  const { valid, payload } = verifySessionToken(token);
-  if (!valid || !payload) {
-    return { authorized: false, status: 401, error: "Sessão inválida ou expirada." };
-  }
-
-  if (payload.role !== "admin") {
-    return {
-      authorized: false,
-      status: 403,
-      error: "Acesso Negado. Requer privilégios de administrador (role = 'admin').",
-    };
-  }
-
-  return { authorized: true, adminUser: payload };
-}
-
 export async function GET(req: NextRequest) {
   try {
-    const auth = await verifyAdminAuth();
+    const auth = await verifyAdminRequest(req);
     if (!auth.authorized) {
       return NextResponse.json({ error: auth.error }, { status: auth.status });
     }
@@ -92,7 +67,7 @@ export async function GET(req: NextRequest) {
 
 export async function PUT(req: NextRequest) {
   try {
-    const auth = await verifyAdminAuth();
+    const auth = await verifyAdminRequest(req);
     if (!auth.authorized) {
       return NextResponse.json({ error: auth.error }, { status: auth.status });
     }
@@ -150,7 +125,7 @@ export async function PUT(req: NextRequest) {
 
 export async function DELETE(req: NextRequest) {
   try {
-    const auth = await verifyAdminAuth();
+    const auth = await verifyAdminRequest(req);
     if (!auth.authorized) {
       return NextResponse.json({ error: auth.error }, { status: auth.status });
     }

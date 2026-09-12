@@ -1,36 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
-import { cookies } from "next/headers";
-import { verifySessionToken, AUTH_COOKIE_NAME } from "@/lib/auth";
+import { verifyAdminRequest } from "@/lib/auth";
 import { passStore } from "@/lib/pass-store";
 import { supabaseAdmin } from "@/lib/supabase/client";
 
-async function verifyAdminAuth() {
-  const cookieStore = await cookies();
-  const token = cookieStore.get(AUTH_COOKIE_NAME)?.value;
-
-  if (!token) {
-    return { authorized: false, status: 401, error: "Não autenticado." };
-  }
-
-  const { valid, payload } = verifySessionToken(token);
-  if (!valid || !payload) {
-    return { authorized: false, status: 401, error: "Sessão inválida ou expirada." };
-  }
-
-  if (payload.role !== "admin") {
-    return {
-      authorized: false,
-      status: 403,
-      error: "Acesso Negado. Requer privilégios de administrador (role = 'admin').",
-    };
-  }
-
-  return { authorized: true, adminUser: payload };
-}
-
-export async function GET() {
+export async function GET(req: NextRequest) {
   try {
-    const auth = await verifyAdminAuth();
+    const auth = await verifyAdminRequest(req);
     if (!auth.authorized) {
       return NextResponse.json({ error: auth.error }, { status: auth.status });
     }
@@ -43,15 +18,30 @@ export async function GET() {
         .order("created_at", { ascending: false });
 
       if (!error && dbMissions) {
-        const mapped = dbMissions.map((m: any) => ({
-          id: m.id,
-          title: m.title,
-          description: m.description,
-          xpReward: m.xp_reward,
-          total: m.total,
-          progress: m.progress,
-          isCompleted: m.is_completed,
-        }));
+        const mapped = dbMissions.map((m: any) => {
+          let vType = m.verification_type;
+          if (!vType) {
+            const t = (m.title || "").toLowerCase();
+            if (t.includes("convidar") || t.includes("amigo")) vType = "referral";
+            else if (t.includes("voucher") || t.includes("benefício")) vType = "benefit_redeem";
+            else if (t.includes("founders") || t.includes("pitch")) vType = "founders_pitch";
+            else if (t.includes("run") || t.includes("corrida")) vType = "run_signup";
+            else if (t.includes("bank") || t.includes("pix")) vType = "bank_pix";
+            else if (t.includes("circle") || t.includes("unplug")) vType = "circle_connect";
+            else vType = "manual";
+          }
+          return {
+            id: m.id,
+            title: m.title,
+            description: m.description,
+            xpReward: m.xp_reward,
+            total: m.total,
+            progress: m.progress,
+            isCompleted: m.is_completed,
+            verificationType: vType,
+            category: m.category || (vType === "referral" ? "Comunidade" : "NXTGEN"),
+          };
+        });
         return NextResponse.json({ success: true, missions: mapped });
       }
     }
@@ -69,13 +59,13 @@ export async function GET() {
 
 export async function POST(req: NextRequest) {
   try {
-    const auth = await verifyAdminAuth();
+    const auth = await verifyAdminRequest(req);
     if (!auth.authorized) {
       return NextResponse.json({ error: auth.error }, { status: auth.status });
     }
 
     const body = await req.json();
-    const { title, description, xpReward, total, progress } = body;
+    const { title, description, xpReward, total, progress, verificationType, category } = body;
 
     if (!title || !description || xpReward === undefined) {
       return NextResponse.json(
@@ -87,6 +77,8 @@ export async function POST(req: NextRequest) {
     const targetTotal = Number(total) || 1;
     const currentProgress = Number(progress) || 0;
     const isCompleted = currentProgress >= targetTotal;
+    const vType = verificationType || (title.toLowerCase().includes("convidar") || title.toLowerCase().includes("amigo") ? "referral" : "manual");
+    const cat = category || (vType === "referral" ? "Comunidade" : "NXTGEN");
 
     // 1. Try Supabase
     if (supabaseAdmin) {
@@ -112,6 +104,8 @@ export async function POST(req: NextRequest) {
           total: inserted.total,
           progress: inserted.progress,
           isCompleted: inserted.is_completed,
+          verificationType: vType,
+          category: cat,
         };
         passStore.createMission(missionObj);
         return NextResponse.json({
@@ -130,6 +124,8 @@ export async function POST(req: NextRequest) {
       progress: currentProgress,
       total: targetTotal,
       isCompleted,
+      verificationType: vType,
+      category: cat,
     });
 
     return NextResponse.json({
@@ -147,7 +143,7 @@ export async function POST(req: NextRequest) {
 
 export async function PUT(req: NextRequest) {
   try {
-    const auth = await verifyAdminAuth();
+    const auth = await verifyAdminRequest(req);
     if (!auth.authorized) {
       return NextResponse.json({ error: auth.error }, { status: auth.status });
     }
@@ -159,8 +155,10 @@ export async function PUT(req: NextRequest) {
       return NextResponse.json({ error: "ID da missão é obrigatório." }, { status: 400 });
     }
 
+    const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id);
+
     // 1. Try Supabase
-    if (supabaseAdmin) {
+    if (supabaseAdmin && isUuid) {
       const dbUpdates: Record<string, any> = {};
       if (title !== undefined) dbUpdates.title = title.trim();
       if (description !== undefined) dbUpdates.description = description.trim();
@@ -222,7 +220,7 @@ export async function PUT(req: NextRequest) {
 
 export async function DELETE(req: NextRequest) {
   try {
-    const auth = await verifyAdminAuth();
+    const auth = await verifyAdminRequest(req);
     if (!auth.authorized) {
       return NextResponse.json({ error: auth.error }, { status: auth.status });
     }
@@ -234,8 +232,10 @@ export async function DELETE(req: NextRequest) {
       return NextResponse.json({ error: "ID da missão é obrigatório." }, { status: 400 });
     }
 
+    const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id);
+
     // 1. Try Supabase
-    if (supabaseAdmin) {
+    if (supabaseAdmin && isUuid) {
       const { error } = await supabaseAdmin.from("missions").delete().eq("id", id);
       if (!error) {
         passStore.deleteMission(id);

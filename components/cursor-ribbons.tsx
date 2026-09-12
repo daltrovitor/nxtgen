@@ -2,6 +2,7 @@
 
 import React, { useEffect, useRef } from "react";
 import { Renderer, Transform, Polyline, Vec3, Color } from "ogl";
+import { useTheme } from "@/components/theme-provider";
 
 interface CursorRibbonsProps {
   colors?: string[];
@@ -22,7 +23,7 @@ export function CursorRibbons({
   colors = ["#8B5CF6", "#06B6D4", "#A855F7"],
   baseSpring = 0.035,
   baseFriction = 0.88,
-  baseThickness = 26,
+  baseThickness = 24,
   offsetFactor = 0.04,
   maxAge = 500,
   pointCount = 50,
@@ -33,11 +34,15 @@ export function CursorRibbons({
   backgroundColor = [0, 0, 0, 0],
 }: CursorRibbonsProps) {
   const containerRef = useRef<HTMLDivElement>(null);
+  const { theme } = useTheme();
+  const isLight = theme === "light";
+  const effectiveColors = isLight
+    ? ["#7C3AED", "#0284C7", "#9333EA"]
+    : colors;
+  const effectiveThickness = isLight ? 18 : baseThickness;
 
   useEffect(() => {
-    // Only run on desktop devices with hover support
     if (typeof window === "undefined") return;
-    if (window.matchMedia("(pointer: coarse)").matches) return;
 
     const container = containerRef.current;
     if (!container) return;
@@ -91,12 +96,12 @@ export function CursorRibbons({
 
     window.addEventListener("resize", handleResize);
 
-    const centerIndex = (colors.length - 1) / 2;
+    const centerIndex = (effectiveColors.length - 1) / 2;
 
-    colors.forEach((colorHex, idx) => {
+    effectiveColors.forEach((colorHex, idx) => {
       const spring = baseSpring + (Math.random() - 0.5) * 0.01;
       const friction = baseFriction + (Math.random() - 0.5) * 0.02;
-      const thickness = baseThickness + (Math.random() - 0.5) * 4;
+      const thickness = effectiveThickness + (Math.random() - 0.5) * 3;
       const mouseOffset = new Vec3(
         (idx - centerIndex) * offsetFactor + (Math.random() - 0.5) * 0.01,
         (Math.random() - 0.5) * 0.02,
@@ -105,7 +110,8 @@ export function CursorRibbons({
 
       const points: Array<InstanceType<typeof Vec3>> = [];
       for (let p = 0; p < pointCount; p++) {
-        points.push(new Vec3());
+        // Initialize offscreen so initial frame never bridges from (0,0)
+        points.push(new Vec3(-9999, -9999, 0));
       }
 
       const polyline = new Polyline(gl, {
@@ -171,7 +177,7 @@ export function CursorRibbons({
         uniforms: {
           uColor: { value: new Color(colorHex) },
           uThickness: { value: thickness },
-          uOpacity: { value: 0.95 },
+          uOpacity: { value: 0 },
           uTime: { value: 0 },
           uEnableShaderEffect: { value: enableShaderEffect ? 1 : 0 },
           uEffectAmplitude: { value: effectAmplitude },
@@ -179,6 +185,7 @@ export function CursorRibbons({
         },
       });
 
+      polyline.mesh.visible = false;
       polyline.mesh.setParent(scene);
       lines.push({
         spring,
@@ -193,23 +200,13 @@ export function CursorRibbons({
     handleResize();
 
     const mousePos = new Vec3();
-    let isRunning = true;
+    let isRunning = false;
+    let hasMoved = false;
     let lastTime = performance.now();
-
-    const stopAnimation = () => {
-      isRunning = false;
-      cancelAnimationFrame(animFrameId);
-    };
+    let currentOpacity = 0;
+    let targetOpacity = 0;
 
     const handlePointerMove = (e: MouseEvent | TouchEvent) => {
-      if (!isRunning) {
-        isRunning = true;
-        lastTime = performance.now();
-        renderLoop();
-      }
-      clearTimeout(idleTimer);
-      idleTimer = setTimeout(stopAnimation, 3000);
-
       let clientX = 0;
       let clientY = 0;
 
@@ -221,22 +218,69 @@ export function CursorRibbons({
         clientY = e.clientY;
       }
 
-      const winWidth = window.innerWidth;
-      const winHeight = window.innerHeight;
+      const winWidth = window.innerWidth || 1920;
+      const winHeight = window.innerHeight || 1080;
       mousePos.set((clientX / winWidth) * 2 - 1, -(clientY / winHeight) * 2 + 1, 0);
+
+      targetOpacity = isLight ? 0.75 : 0.9;
+
+      if (!hasMoved) {
+        hasMoved = true;
+        lines.forEach((line) => {
+          line.points.forEach((pt) => pt.copy(mousePos));
+          line.mouseVelocity.set(0, 0, 0);
+          line.polyline.updateGeometry();
+          line.polyline.mesh.visible = true;
+        });
+      }
+
+      if (!isRunning) {
+        isRunning = true;
+        lastTime = performance.now();
+        renderLoop();
+      }
+
+      clearTimeout(idleTimer);
+      idleTimer = setTimeout(() => {
+        // Smoothly fade out trail when idle so it doesn't stay frozen on screen
+        targetOpacity = 0;
+      }, 450);
+    };
+
+    const handleMouseLeave = () => {
+      targetOpacity = 0;
     };
 
     window.addEventListener("mousemove", handlePointerMove, { passive: true });
+    document.addEventListener("mouseleave", handleMouseLeave);
 
     const tmpVec = new Vec3();
 
     function renderLoop() {
       if (!isRunning) return;
-      animFrameId = requestAnimationFrame(renderLoop);
 
       const now = performance.now();
       const delta = now - lastTime;
       lastTime = now;
+
+      // Smoothly transition opacity
+      currentOpacity += (targetOpacity - currentOpacity) * 0.12;
+
+      // When fully faded and target is 0, pause loop to save battery and GPU
+      if (currentOpacity < 0.005 && targetOpacity === 0) {
+        currentOpacity = 0;
+        lines.forEach((line) => {
+          const uniforms = line.polyline.mesh.program.uniforms;
+          if (uniforms && uniforms.uOpacity) {
+            uniforms.uOpacity.value = 0;
+          }
+        });
+        renderer.render({ scene });
+        isRunning = false;
+        return;
+      }
+
+      animFrameId = requestAnimationFrame(renderLoop);
 
       lines.forEach((line) => {
         tmpVec
@@ -261,8 +305,9 @@ export function CursorRibbons({
         }
 
         const uniforms = line.polyline.mesh.program.uniforms;
-        if (uniforms && uniforms.uTime) {
-          uniforms.uTime.value = 0.001 * now;
+        if (uniforms) {
+          if (uniforms.uTime) uniforms.uTime.value = 0.001 * now;
+          if (uniforms.uOpacity) uniforms.uOpacity.value = currentOpacity;
         }
         line.polyline.updateGeometry();
       });
@@ -270,23 +315,21 @@ export function CursorRibbons({
       renderer.render({ scene });
     }
 
-    idleTimer = setTimeout(stopAnimation, 3000);
-    renderLoop();
-
     return () => {
       clearTimeout(idleTimer);
       window.removeEventListener("resize", handleResize);
       window.removeEventListener("mousemove", handlePointerMove);
+      document.removeEventListener("mouseleave", handleMouseLeave);
       cancelAnimationFrame(animFrameId);
       if (gl.canvas && gl.canvas.parentNode === container) {
         container.removeChild(gl.canvas);
       }
     };
   }, [
-    colors,
+    effectiveColors,
+    effectiveThickness,
     baseSpring,
     baseFriction,
-    baseThickness,
     offsetFactor,
     maxAge,
     pointCount,
@@ -295,12 +338,13 @@ export function CursorRibbons({
     enableShaderEffect,
     effectAmplitude,
     backgroundColor,
+    isLight,
   ]);
 
   return (
     <div
       ref={containerRef}
-      className="fixed inset-0 z-[9998] pointer-events-none w-screen h-screen overflow-hidden"
+      className="fixed inset-0 z-30 pointer-events-none w-screen h-screen overflow-hidden"
       aria-hidden="true"
     />
   );

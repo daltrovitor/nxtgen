@@ -3,12 +3,19 @@ import { getCurrentUser } from "@/lib/auth";
 import { passStore, SystemVoucher } from "@/lib/pass-store";
 import { supabaseAdmin } from "@/lib/supabase/client";
 
+function isUuid(id?: string | null): boolean {
+  if (!id) return false;
+  return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id);
+}
+
 export async function GET(req: NextRequest) {
   try {
-    const user = await getCurrentUser();
+    const user = await getCurrentUser(req);
     let benefits: any[] = [];
     let missions: any[] = [];
     let userVouchers: SystemVoucher[] = [];
+    let supabaseBenefitsQueried = false;
+    let supabaseMissionsQueried = false;
 
     // 1. Try Supabase
     if (supabaseAdmin) {
@@ -18,7 +25,8 @@ export async function GET(req: NextRequest) {
           supabaseAdmin.from("missions").select("*").order("created_at", { ascending: false }),
         ]);
 
-        if (resBenefits.data) {
+        if (!resBenefits.error && Array.isArray(resBenefits.data)) {
+          supabaseBenefitsQueried = true;
           benefits = resBenefits.data.map((b: any) => ({
             id: b.id,
             partnerId: b.partner_id || b.id,
@@ -33,28 +41,63 @@ export async function GET(req: NextRequest) {
             minNxtLevel: b.min_nxt_level || 1,
             terms: Array.isArray(b.terms) ? b.terms : [b.terms || "Apresente o QR Code no balcão."],
           }));
+
+          // Keep passStore strictly synced with current Supabase benefits
+          passStore.setBenefits(benefits);
         }
 
         if (resMissions.data) {
-          missions = resMissions.data.map((m: any) => ({
-            id: m.id,
-            title: m.title,
-            description: m.description,
-            xpReward: m.xp_reward,
-            total: m.total,
-            progress: m.progress,
-            isCompleted: m.is_completed,
-          }));
+          supabaseMissionsQueried = true;
+          missions = resMissions.data.map((m: any) => {
+            let vType = m.verification_type;
+            if (!vType) {
+              const t = (m.title || "").toLowerCase();
+              if (t.includes("convidar") || t.includes("amigo")) vType = "referral";
+              else if (t.includes("voucher") || t.includes("benefício")) vType = "benefit_redeem";
+              else if (t.includes("founders") || t.includes("pitch")) vType = "founders_pitch";
+              else if (t.includes("run") || t.includes("corrida")) vType = "run_signup";
+              else if (t.includes("bank") || t.includes("pix")) vType = "bank_pix";
+              else if (t.includes("circle") || t.includes("unplug")) vType = "circle_connect";
+              else vType = "manual";
+            }
+            return {
+              id: m.id,
+              title: m.title,
+              description: m.description,
+              xpReward: m.xp_reward,
+              total: m.total,
+              progress: m.progress || 0,
+              isCompleted: m.is_completed || false,
+              verificationType: vType,
+              category: m.category || (vType === "referral" ? "Comunidade" : "NXTGEN"),
+            };
+          });
+
+          // Sync passStore
+          missions.forEach((m) => {
+            if (!passStore.getMissionById(m.id)) {
+              passStore.createMission(m);
+            }
+          });
         }
 
         if (user) {
-          const { data: dbVouchers } = await supabaseAdmin
+          let voucherQuery = supabaseAdmin
             .from("vouchers")
             .select("*")
-            .eq("user_id", user.id)
             .order("created_at", { ascending: false });
 
-          if (dbVouchers) {
+          if (isUuid(user.id) && user.email) {
+            voucherQuery = voucherQuery.or(`user_id.eq.${user.id},user_email.eq.${user.email}`);
+          } else if (isUuid(user.id)) {
+            voucherQuery = voucherQuery.eq("user_id", user.id);
+          } else if (user.email) {
+            voucherQuery = voucherQuery.eq("user_email", user.email);
+          }
+
+          const { data: dbVouchers, error: voucherErr } = await voucherQuery;
+
+          if (!voucherErr && dbVouchers && dbVouchers.length > 0) {
             userVouchers = dbVouchers.map((v: any) => ({
               id: v.id,
               code: v.code,
@@ -72,10 +115,15 @@ export async function GET(req: NextRequest) {
                 minute: "2-digit",
               }),
               terms: v.terms || "Apresente o QR Code no balcão.",
-              userId: v.user_id,
-              userEmail: v.user_email,
-              userName: v.user_name,
+              userId: v.user_id || user.id,
+              userEmail: v.user_email || user.email,
+              userName: v.user_name || user.fullName,
             }));
+
+            // Sync into passStore cache
+            userVouchers.forEach((sv) => {
+              passStore.createVoucher(sv);
+            });
           }
         }
       } catch (dbErr) {
@@ -83,18 +131,115 @@ export async function GET(req: NextRequest) {
       }
     }
 
-    // 2. Fallback to passStore if tables don't exist yet
-    if (benefits.length === 0) {
+    // 2. Fallback to passStore only if Supabase was not configured or failed
+    if (!supabaseBenefitsQueried) {
       benefits = passStore.getBenefits();
     }
+    // Clean out any IronBox benefit
+    benefits = benefits.filter(
+      (b) =>
+        !b.partnerName?.toLowerCase().includes("ironbox") &&
+        !b.title?.toLowerCase().includes("ironbox")
+    );
+
     if (missions.length === 0) {
+      // Initialize with PDF templates
+      const storeMissions = passStore.getMissions();
+      if (storeMissions.length === 0) {
+        const { PDF_MISSION_TEMPLATES } = await import("@/lib/pass-data");
+        PDF_MISSION_TEMPLATES.forEach((tmpl) => {
+          passStore.createMission(tmpl);
+        });
+      }
       missions = passStore.getMissions();
     }
-    if (userVouchers.length === 0 && user) {
-      userVouchers = passStore.getUserVouchers(user.id);
-      if (userVouchers.length === 0 && user.email) {
-        userVouchers = passStore.getUserVouchers(user.email);
+
+    // Merge user personalized state for missions if user logged in
+    if (user) {
+      const userMissionMap = passStore.getUserMissions(user.id);
+      missions = missions.map((m) => {
+        const userState = userMissionMap.find((um) => um.id === m.id);
+        const isReferral =
+          m.verificationType === "referral" ||
+          m.title.toLowerCase().includes("convidar") ||
+          m.title.toLowerCase().includes("amigo");
+
+        // Infer verificationType if not set
+        let vType = m.verificationType;
+        if (!vType) {
+          if (isReferral) vType = "referral";
+          else if (m.title.toLowerCase().includes("voucher") || m.title.toLowerCase().includes("benefício")) vType = "benefit_redeem";
+          else if (m.title.toLowerCase().includes("founders") || m.title.toLowerCase().includes("pitch")) vType = "founders_pitch";
+          else if (m.title.toLowerCase().includes("run") || m.title.toLowerCase().includes("corrida")) vType = "run_signup";
+          else if (m.title.toLowerCase().includes("bank") || m.title.toLowerCase().includes("pix")) vType = "bank_pix";
+          else if (m.title.toLowerCase().includes("circle") || m.title.toLowerCase().includes("unplug")) vType = "circle_connect";
+          else vType = "manual";
+        }
+
+        // Automatic progress check for referrals
+        let progress = userState?.progress || 0;
+        let isCompleted = userState?.isCompleted || false;
+
+        if (isReferral) {
+          const refCount = passStore.countUserReferrals(user.id);
+          progress = Math.max(progress, Math.min(m.total, refCount));
+          if (progress >= m.total) {
+            isCompleted = true;
+          }
+        }
+
+        return {
+          ...m,
+          verificationType: vType,
+          progress,
+          isCompleted,
+          isAccepted: userState ? userState.isAccepted : false,
+          acceptedAt: userState?.acceptedAt,
+          completedAt: userState?.completedAt,
+        };
+      });
+
+      if (userVouchers.length === 0) {
+        userVouchers = passStore.getUserVouchers(user.id);
+        if (userVouchers.length === 0 && user.email) {
+          userVouchers = passStore.getUserVouchers(user.email);
+        }
       }
+    }
+
+    // Referral Info for current user
+    let referralInfo = null;
+    if (user) {
+      const storeReferrer = passStore.getUserReferrer(user.id);
+      let referredBy = storeReferrer
+        ? { id: storeReferrer.referrerId, name: storeReferrer.referrerName }
+        : null;
+      let metaFriendsCount = 0;
+
+      if (supabaseAdmin) {
+        try {
+          const { data: authData } = await supabaseAdmin.auth.admin.getUserById(user.id);
+          const meta = authData?.user?.user_metadata;
+          if (meta?.friends_invited_count) {
+            metaFriendsCount = Number(meta.friends_invited_count) || 0;
+          }
+          if (!referredBy && meta?.referred_by_id) {
+            referredBy = {
+              id: meta.referred_by_id,
+              name: meta.referred_by_name || "Membro NXTGEN",
+            };
+          }
+        } catch {}
+      }
+
+      const friendsCount = Math.max(passStore.countUserReferrals(user.id), metaFriendsCount);
+
+      referralInfo = {
+        userId: user.id,
+        referralCode: user.id.slice(0, 8).toUpperCase(),
+        friendsInvitedCount: friendsCount,
+        referredBy,
+      };
     }
 
     return NextResponse.json({
@@ -102,6 +247,7 @@ export async function GET(req: NextRequest) {
       benefits,
       missions,
       vouchers: userVouchers,
+      referralInfo,
       currentUser: user
         ? {
             id: user.id,

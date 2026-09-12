@@ -10,9 +10,11 @@ import {
   INITIAL_VOUCHERS,
   PASS_MISSIONS,
   PassMission,
+  ReferralInfo,
 } from "@/lib/pass-data";
 import { PassHeader } from "./pass-header";
 import { PassLevelBanner } from "./pass-level-banner";
+import { PassReferralCard } from "./pass-referral-card";
 import { PassQuickStats } from "./pass-quick-stats";
 import { PassCategoriesBar } from "./pass-categories-bar";
 import { PassBenefitGrid } from "./pass-benefit-grid";
@@ -22,6 +24,42 @@ import { PassMissionsCard } from "./pass-missions-card";
 
 interface PassDashboardClientProps {
   onViewShowcase?: () => void;
+}
+
+const LOCAL_STORAGE_VOUCHERS_KEY = "nxtgen_pass_vouchers";
+
+function loadCachedVouchers(): UserVoucher[] {
+  if (typeof window === "undefined") return [];
+  try {
+    const raw = localStorage.getItem(LOCAL_STORAGE_VOUCHERS_KEY);
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      if (Array.isArray(parsed)) return parsed;
+    }
+  } catch {}
+  return [];
+}
+
+function saveCachedVouchers(list: UserVoucher[]) {
+  if (typeof window === "undefined") return;
+  try {
+    localStorage.setItem(LOCAL_STORAGE_VOUCHERS_KEY, JSON.stringify(list));
+  } catch {}
+}
+
+function mergeVouchers(base: UserVoucher[], incoming: UserVoucher[]): UserVoucher[] {
+  const map = new Map<string, UserVoucher>();
+  // 1. Put base vouchers first
+  base.forEach((v) => {
+    const key = v.code?.toUpperCase() || v.id;
+    map.set(key, v);
+  });
+  // 2. Incoming from server overrides/updates base
+  incoming.forEach((v) => {
+    const key = v.code?.toUpperCase() || v.id;
+    map.set(key, v);
+  });
+  return Array.from(map.values());
 }
 
 export function PassDashboardClient({ onViewShowcase }: PassDashboardClientProps) {
@@ -39,13 +77,22 @@ export function PassDashboardClient({ onViewShowcase }: PassDashboardClientProps
   const [benefitsList, setBenefitsList] = useState<Benefit[]>(INITIAL_BENEFITS);
   const [missionsList, setMissionsList] = useState<PassMission[]>(PASS_MISSIONS);
   const [vouchers, setVouchers] = useState<UserVoucher[]>(INITIAL_VOUCHERS);
+  const [referralInfo, setReferralInfo] = useState<ReferralInfo | null>(null);
 
   // Sync user prop
   useEffect(() => {
     if (user) {
-      setLiveUser((prev) => prev ? { ...prev, ...user } : user);
+      setLiveUser((prev) => (prev ? { ...prev, ...user } : user));
     }
   }, [user]);
+
+  // Hydrate from localStorage on client mount
+  useEffect(() => {
+    const cached = loadCachedVouchers();
+    if (cached && cached.length > 0) {
+      setVouchers((prev) => mergeVouchers(prev, cached));
+    }
+  }, []);
 
   // Fetch live store data from API
   const fetchLiveData = useCallback(async () => {
@@ -53,9 +100,13 @@ export function PassDashboardClient({ onViewShowcase }: PassDashboardClientProps
       const res = await fetch("/api/pass/data");
       const data = await res.json();
       if (res.ok && data.success) {
-        if (data.benefits) setBenefitsList(data.benefits);
-        if (data.missions) setMissionsList(data.missions);
-        if (data.vouchers && data.vouchers.length > 0) setVouchers(data.vouchers);
+        if (Array.isArray(data.benefits)) setBenefitsList(data.benefits);
+        if (data.missions && data.missions.length > 0) setMissionsList(data.missions);
+        if (data.referralInfo) setReferralInfo(data.referralInfo);
+        if (Array.isArray(data.vouchers)) {
+          setVouchers(data.vouchers);
+          saveCachedVouchers(data.vouchers);
+        }
         if (data.currentUser) {
           setLiveUser((prev: any) => ({
             ...prev,
@@ -73,6 +124,14 @@ export function PassDashboardClient({ onViewShowcase }: PassDashboardClientProps
 
   useEffect(() => {
     fetchLiveData();
+  }, [fetchLiveData]);
+
+  // Real-time polling every 8s so that partner validation instantly updates user screen
+  useEffect(() => {
+    const interval = setInterval(() => {
+      fetchLiveData();
+    }, 8000);
+    return () => clearInterval(interval);
   }, [fetchLiveData]);
 
   // Filtered Benefits
@@ -98,6 +157,16 @@ export function PassDashboardClient({ onViewShowcase }: PassDashboardClientProps
   const selectedCategoryObj = NXT_CATEGORIES.find((c) => c.id === selectedCategory);
   const selectedCategoryName = selectedCategoryObj?.name || "Todos";
 
+  const isBenefitActiveRedeemed = useCallback(
+    (benefit: Benefit | null) => {
+      if (!benefit) return false;
+      return vouchers.some(
+        (v) => v.benefitId === benefit.id && v.status === "valid"
+      );
+    },
+    [vouchers]
+  );
+
   if (!liveUser) {
     return null;
   }
@@ -118,9 +187,20 @@ export function PassDashboardClient({ onViewShowcase }: PassDashboardClientProps
 
       const data = await res.json();
       if (res.ok && data.voucher) {
-        setVouchers((prev) => [data.voucher, ...prev]);
+        setVouchers((prev) => {
+          const next = [
+            data.voucher,
+            ...prev.filter(
+              (v) =>
+                v.id !== data.voucher.id &&
+                v.code?.toUpperCase() !== data.voucher.code?.toUpperCase()
+            ),
+          ];
+          saveCachedVouchers(next);
+          return next;
+        });
       } else {
-        // Fallback local voucher
+        // Fallback local voucher (persisted to localStorage)
         const uniqueToken = `NXT-${Math.floor(1000 + Math.random() * 9000)}-${Math.floor(
           1000 + Math.random() * 9000
         )}`;
@@ -134,10 +214,19 @@ export function PassDashboardClient({ onViewShowcase }: PassDashboardClientProps
           discountLabel: benefit.discountLabel,
           status: "valid",
           qrPayload: `NXTGEN_PASS::${uniqueToken}::${benefit.partnerName.replace(/\s+/g, "")}`,
-          redeemedAt: "Agora mesmo",
+          redeemedAt: new Date().toLocaleString("pt-BR", {
+            day: "2-digit",
+            month: "2-digit",
+            hour: "2-digit",
+            minute: "2-digit",
+          }),
           terms: benefit.terms[0] || "Apresente o QR Code no balcão ao pedir a conta.",
         };
-        setVouchers((prev) => [fallbackVoucher, ...prev]);
+        setVouchers((prev) => {
+          const next = [fallbackVoucher, ...prev];
+          saveCachedVouchers(next);
+          return next;
+        });
       }
     } catch {
       // Local fallback
@@ -154,10 +243,19 @@ export function PassDashboardClient({ onViewShowcase }: PassDashboardClientProps
         discountLabel: benefit.discountLabel,
         status: "valid",
         qrPayload: `NXTGEN_PASS::${uniqueToken}::${benefit.partnerName.replace(/\s+/g, "")}`,
-        redeemedAt: "Agora mesmo",
+        redeemedAt: new Date().toLocaleString("pt-BR", {
+          day: "2-digit",
+          month: "2-digit",
+          hour: "2-digit",
+          minute: "2-digit",
+        }),
         terms: benefit.terms[0] || "Apresente o QR Code no balcão.",
       };
-      setVouchers((prev) => [fallbackVoucher, ...prev]);
+      setVouchers((prev) => {
+        const next = [fallbackVoucher, ...prev];
+        saveCachedVouchers(next);
+        return next;
+      });
     }
 
     setIsDetailModalOpen(false);
@@ -174,15 +272,19 @@ export function PassDashboardClient({ onViewShowcase }: PassDashboardClientProps
     } catch (e) {
       console.error(e);
     }
-    setVouchers((prev) =>
-      prev.map((v) => (v.id === voucherId ? { ...v, status: "used" } : v))
-    );
+    setVouchers((prev) => {
+      const next = prev.map((v) =>
+        v.id === voucherId ? { ...v, status: "used" as const } : v
+      );
+      saveCachedVouchers(next);
+      return next;
+    });
   };
 
   const activeVouchersCount = vouchers.filter((v) => v.status === "valid").length;
 
   return (
-    <div className="min-h-screen bg-[#000000] text-[#F3F4F6] pb-20">
+    <div className="min-h-screen bg-background text-foreground pb-20 transition-colors duration-200">
       {/* 1. Header */}
       <PassHeader
         user={liveUser}
@@ -196,7 +298,30 @@ export function PassDashboardClient({ onViewShowcase }: PassDashboardClientProps
         {/* 2. Banner de Nível */}
         <PassLevelBanner user={liveUser} />
 
-        {/* 3. Benefícios Resgatados */}
+        {/* 2.5. Card de Indicação & Validação de Convite de Amigo */}
+        <PassReferralCard
+          referralInfo={
+            referralInfo ||
+            (liveUser
+              ? {
+                  userId: liveUser.id,
+                  referralCode: liveUser.id.slice(0, 8).toUpperCase(),
+                  friendsInvitedCount: 0,
+                  referredBy: null,
+                }
+              : null)
+          }
+          onReferralSuccess={(newScore, newLevel) => {
+            setLiveUser((prev: any) => ({
+              ...prev,
+              nxtScore: newScore,
+              nxtLevel: newLevel,
+            }));
+            fetchLiveData();
+          }}
+        />
+
+        {/* 3. Benefícios Resgatados (Some quando parceiro valida) */}
         <PassQuickStats
           vouchers={vouchers}
           onOpenVouchers={() => setIsVouchersDrawerOpen(true)}
@@ -219,6 +344,7 @@ export function PassDashboardClient({ onViewShowcase }: PassDashboardClientProps
           benefits={filteredBenefits}
           onSelectBenefit={handleSelectBenefit}
           selectedCategoryName={selectedCategoryName}
+          activeVouchers={vouchers}
           onResetFilters={() => {
             setSelectedCategory("all");
             setSearchQuery("");
@@ -226,7 +352,19 @@ export function PassDashboardClient({ onViewShowcase }: PassDashboardClientProps
         />
 
         {/* 9. Missões do Passe */}
-        <PassMissionsCard missions={missionsList} />
+        <PassMissionsCard
+          missions={missionsList}
+          userId={liveUser?.id}
+          onMissionUpdate={fetchLiveData}
+          onScoreChange={(newScore, newLevel) => {
+            setLiveUser((prev: any) => ({
+              ...prev,
+              nxtScore: newScore,
+              nxtLevel: newLevel,
+            }));
+            fetchLiveData();
+          }}
+        />
       </main>
 
       {/* 6. Modal de Detalhes do Benefício */}
@@ -235,6 +373,8 @@ export function PassDashboardClient({ onViewShowcase }: PassDashboardClientProps
         isOpen={isDetailModalOpen}
         onClose={() => setIsDetailModalOpen(false)}
         onRedeemBenefit={handleRedeemBenefit}
+        isAlreadyRedeemed={isBenefitActiveRedeemed(selectedBenefit)}
+        onOpenVoucherDrawer={() => setIsVouchersDrawerOpen(true)}
       />
 
       {/* 7. Carteira de Vouchers com QR Code */}

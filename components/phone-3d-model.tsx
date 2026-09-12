@@ -4,6 +4,7 @@ import React, { useEffect, useRef } from "react";
 import * as THREE from "three";
 import type { MotionValue } from "framer-motion";
 import { cn } from "@/lib/utils";
+import { useTheme } from "@/components/theme-provider";
 
 interface Phone3DModelProps {
   highlightBenefits?: boolean;
@@ -35,26 +36,38 @@ function createRoundedRectShape(width: number, height: number, radius: number): 
 // Procedural Screen UI Drawer onto 2D Canvas (mapped as WebGL Texture)
 function renderPhoneScreenCanvas(
   canvas: HTMLCanvasElement,
-  options: { animateXp: boolean; highlightBenefits: boolean }
+  options: { animateXp: boolean; highlightBenefits: boolean; isLight?: boolean }
 ) {
   const ctx = canvas.getContext("2d");
   if (!ctx) return;
 
   const w = canvas.width;
   const h = canvas.height;
+  const isLight = !!options.isLight;
 
-  // 1. OLED Screen Background (Deep Black with high-contrast violet radial aura)
-  ctx.fillStyle = "#050609";
-  ctx.fillRect(0, 0, w, h);
+  // 1. Screen Background (OLED Deep Black in Dark Mode, Pure Light Porcelain in Light Mode)
+  if (isLight) {
+    ctx.fillStyle = "#F8FAFC";
+    ctx.fillRect(0, 0, w, h);
 
-  const bgGradient = ctx.createRadialGradient(w / 2, 280, 50, w / 2, 500, 800);
-  bgGradient.addColorStop(0, "rgba(168, 85, 247, 0.22)");
-  bgGradient.addColorStop(1, "rgba(5, 6, 9, 0)");
-  ctx.fillStyle = bgGradient;
-  ctx.fillRect(0, 0, w, h);
+    const bgGradient = ctx.createRadialGradient(w / 2, 280, 50, w / 2, 500, 800);
+    bgGradient.addColorStop(0, "rgba(168, 85, 247, 0.08)");
+    bgGradient.addColorStop(1, "rgba(248, 250, 252, 0)");
+    ctx.fillStyle = bgGradient;
+    ctx.fillRect(0, 0, w, h);
+  } else {
+    ctx.fillStyle = "#050609";
+    ctx.fillRect(0, 0, w, h);
+
+    const bgGradient = ctx.createRadialGradient(w / 2, 280, 50, w / 2, 500, 800);
+    bgGradient.addColorStop(0, "rgba(168, 85, 247, 0.22)");
+    bgGradient.addColorStop(1, "rgba(5, 6, 9, 0)");
+    ctx.fillStyle = bgGradient;
+    ctx.fillRect(0, 0, w, h);
+  }
 
   // 2. Status Bar (9:41, Cellular, WiFi, Battery)
-  ctx.fillStyle = "#ffffff";
+  ctx.fillStyle = isLight ? "#0F172A" : "#ffffff";
   ctx.font = "800 44px 'Inter', -apple-system, system-ui, sans-serif";
   ctx.textAlign = "left";
   ctx.fillText("9:41", 80, 96);
@@ -62,12 +75,14 @@ function renderPhoneScreenCanvas(
   // Cellular bars
   const barX = w - 210;
   for (let i = 0; i < 4; i++) {
-    ctx.fillStyle = i < 4 ? "#ffffff" : "rgba(255,255,255,0.3)";
+    ctx.fillStyle = i < 4 
+      ? (isLight ? "#0F172A" : "#ffffff") 
+      : (isLight ? "rgba(15, 23, 42, 0.2)" : "rgba(255,255,255,0.3)");
     ctx.fillRect(barX + i * 13, 98 - (i + 1) * 7, 8, (i + 1) * 7);
   }
 
   // WiFi Wave symbol
-  ctx.strokeStyle = "#ffffff";
+  ctx.strokeStyle = isLight ? "#0F172A" : "#ffffff";
   ctx.lineWidth = 4.5;
   ctx.beginPath();
   ctx.arc(w - 140, 93, 16, Math.PI * 1.25, Math.PI * 1.75);
@@ -78,19 +93,19 @@ function renderPhoneScreenCanvas(
 
   // Battery capsule
   const batX = w - 100;
-  ctx.strokeStyle = "rgba(255,255,255,0.9)";
+  ctx.strokeStyle = isLight ? "rgba(15, 23, 42, 0.85)" : "rgba(255,255,255,0.9)";
   ctx.lineWidth = 4;
   ctx.beginPath();
   ctx.roundRect(batX, 74, 52, 28, 8);
   ctx.stroke();
-  ctx.fillStyle = "#34d399"; // Full charged green indicator
+  ctx.fillStyle = "#10b981"; // Charged indicator
   ctx.beginPath();
   ctx.roundRect(batX + 4, 78, 36, 20, 4);
   ctx.fill();
-  ctx.fillStyle = "rgba(255,255,255,0.9)";
+  ctx.fillStyle = isLight ? "rgba(15, 23, 42, 0.85)" : "rgba(255,255,255,0.9)";
   ctx.fillRect(batX + 52, 83, 3.5, 10);
 
-  // Dynamic Island Notch
+  // Dynamic Island Notch (Always black hardware cut-out)
   const diWidth = 290;
   const diHeight = 76;
   const diX = (w - diWidth) / 2;
@@ -99,7 +114,7 @@ function renderPhoneScreenCanvas(
   ctx.beginPath();
   ctx.roundRect(diX, diY, diWidth, diHeight, 38);
   ctx.fill();
-  ctx.strokeStyle = "rgba(255,255,255,0.14)";
+  ctx.strokeStyle = isLight ? "rgba(0, 0, 0, 0.1)" : "rgba(255,255,255,0.14)";
   ctx.lineWidth = 2;
   ctx.stroke();
 
@@ -114,51 +129,51 @@ function renderPhoneScreenCanvas(
   ctx.fill();
 
   // 3. Top Tag & Notification Bell
-  ctx.fillStyle = "rgba(168, 85, 247, 0.22)";
+  ctx.fillStyle = isLight ? "rgba(139, 92, 246, 0.12)" : "rgba(168, 85, 247, 0.22)";
   ctx.beginPath();
   ctx.roundRect(65, 175, 185, 52, 26);
   ctx.fill();
-  ctx.strokeStyle = "rgba(192, 132, 252, 0.6)";
+  ctx.strokeStyle = isLight ? "rgba(139, 92, 246, 0.45)" : "rgba(192, 132, 252, 0.6)";
   ctx.lineWidth = 2.5;
   ctx.stroke();
 
   ctx.font = "bold 24px 'JetBrains Mono', monospace";
-  ctx.fillStyle = "#d8b4fe";
+  ctx.fillStyle = isLight ? "#7C3AED" : "#d8b4fe";
   ctx.textAlign = "center";
   ctx.fillText("NXT PASS", 65 + 185 / 2, 208);
 
   // Bell button circle
   const bellX = w - 90;
   const bellY = 201;
-  ctx.fillStyle = "rgba(255,255,255,0.1)";
+  ctx.fillStyle = isLight ? "rgba(15, 23, 42, 0.05)" : "rgba(255,255,255,0.1)";
   ctx.beginPath();
   ctx.arc(bellX, bellY, 28, 0, Math.PI * 2);
   ctx.fill();
-  ctx.strokeStyle = "rgba(255,255,255,0.15)";
+  ctx.strokeStyle = isLight ? "rgba(15, 23, 42, 0.1)" : "rgba(255,255,255,0.15)";
   ctx.lineWidth = 2;
   ctx.stroke();
 
   ctx.font = "26px 'Inter', sans-serif";
-  ctx.fillStyle = "#ffffff";
+  ctx.fillStyle = isLight ? "#0F172A" : "#ffffff";
   ctx.fillText("🔔", bellX, bellY + 8);
 
   // Notification dot
-  ctx.fillStyle = "#c084fc";
+  ctx.fillStyle = isLight ? "#7C3AED" : "#c084fc";
   ctx.beginPath();
   ctx.arc(bellX + 17, bellY - 15, 8, 0, Math.PI * 2);
   ctx.fill();
 
   // 4. Greeting Header (High Visibility & Bold Contrast)
   ctx.textAlign = "left";
-  ctx.fillStyle = "#ffffff";
+  ctx.fillStyle = isLight ? "#0F172A" : "#ffffff";
   ctx.font = "800 68px 'Inter', system-ui, sans-serif";
   ctx.fillText("Bom dia, Rafael 👋", 65, 310);
 
-  ctx.fillStyle = "#c084fc";
+  ctx.fillStyle = isLight ? "#7C3AED" : "#c084fc";
   ctx.font = "800 46px 'Inter', system-ui, sans-serif";
   ctx.fillText("Você está evoluindo!", 65, 375);
 
-  ctx.fillStyle = "#cbd5e1";
+  ctx.fillStyle = isLight ? "#64748B" : "#cbd5e1";
   ctx.font = "500 30px 'Inter', system-ui, sans-serif";
   ctx.fillText("Substitua impulsos por benefícios reais.", 65, 428);
 
@@ -169,29 +184,34 @@ function renderPhoneScreenCanvas(
   const cardH = 390;
 
   const cardGrad = ctx.createLinearGradient(cardX, cardY, cardX + cardW, cardY + cardH);
-  cardGrad.addColorStop(0, "#23173d");
-  cardGrad.addColorStop(1, "#100c1e");
+  if (isLight) {
+    cardGrad.addColorStop(0, "#FFFFFF");
+    cardGrad.addColorStop(1, "#F8FAFC");
+  } else {
+    cardGrad.addColorStop(0, "#23173d");
+    cardGrad.addColorStop(1, "#100c1e");
+  }
 
   ctx.fillStyle = cardGrad;
   ctx.beginPath();
   ctx.roundRect(cardX, cardY, cardW, cardH, 38);
   ctx.fill();
 
-  ctx.strokeStyle = "rgba(192, 132, 252, 0.55)";
+  ctx.strokeStyle = isLight ? "rgba(139, 92, 246, 0.35)" : "rgba(192, 132, 252, 0.55)";
   ctx.lineWidth = 3.5;
   ctx.stroke();
 
   // Card Content
   ctx.font = "bold 26px 'JetBrains Mono', monospace";
-  ctx.fillStyle = "#cbd5e1";
+  ctx.fillStyle = isLight ? "#64748B" : "#cbd5e1";
   ctx.fillText("SEU NÍVEL ATUAL", cardX + 45, cardY + 70);
 
   ctx.font = "800 66px 'Inter', system-ui, sans-serif";
-  ctx.fillStyle = "#ffffff";
+  ctx.fillStyle = isLight ? "#0F172A" : "#ffffff";
   ctx.fillText("NXT Level 3", cardX + 45, cardY + 145);
 
   ctx.font = "600 26px 'Inter', system-ui, sans-serif";
-  ctx.fillStyle = "#d8b4fe";
+  ctx.fillStyle = isLight ? "#7C3AED" : "#d8b4fe";
   ctx.fillText("Desbloqueie salas VIP ilimitadas no Nível 4", cardX + 45, cardY + 195);
 
   // Hexagonal Level 3 Badge (High Contrast)
@@ -200,8 +220,8 @@ function renderPhoneScreenCanvas(
   const badgeSize = 58;
   ctx.save();
   ctx.translate(badgeCenterX, badgeCenterY);
-  ctx.fillStyle = "rgba(168, 85, 247, 0.4)";
-  ctx.strokeStyle = "#c084fc";
+  ctx.fillStyle = isLight ? "rgba(139, 92, 246, 0.15)" : "rgba(168, 85, 247, 0.4)";
+  ctx.strokeStyle = isLight ? "#7C3AED" : "#c084fc";
   ctx.lineWidth = 5;
   ctx.beginPath();
   for (let i = 0; i < 6; i++) {
@@ -215,7 +235,7 @@ function renderPhoneScreenCanvas(
   ctx.fill();
   ctx.stroke();
 
-  ctx.fillStyle = "#ffffff";
+  ctx.fillStyle = isLight ? "#7C3AED" : "#ffffff";
   ctx.font = "800 52px 'JetBrains Mono', monospace";
   ctx.textAlign = "center";
   ctx.textBaseline = "middle";
@@ -226,11 +246,11 @@ function renderPhoneScreenCanvas(
   ctx.textAlign = "left";
   ctx.textBaseline = "alphabetic";
   ctx.font = "bold 28px 'JetBrains Mono', monospace";
-  ctx.fillStyle = "#c084fc";
+  ctx.fillStyle = isLight ? "#7C3AED" : "#c084fc";
   ctx.fillText("XP da Temporada", cardX + 45, cardY + 268);
 
   ctx.textAlign = "right";
-  ctx.fillStyle = "#ffffff";
+  ctx.fillStyle = isLight ? "#0F172A" : "#ffffff";
   ctx.font = "bold 28px 'JetBrains Mono', monospace";
   ctx.fillText("2.150 / 3.000 XP", cardX + cardW - 45, cardY + 268);
 
@@ -240,7 +260,7 @@ function renderPhoneScreenCanvas(
   const trackW = cardW - 90;
   const trackH = 26;
 
-  ctx.fillStyle = "rgba(0, 0, 0, 0.75)";
+  ctx.fillStyle = isLight ? "#E2E8F0" : "rgba(0, 0, 0, 0.75)";
   ctx.beginPath();
   ctx.roundRect(trackX, trackY, trackW, trackH, 13);
   ctx.fill();
@@ -249,9 +269,9 @@ function renderPhoneScreenCanvas(
   const fillPercent = options.animateXp ? 0.716 : 0.6;
   const fillW = trackW * fillPercent;
   const fillGrad = ctx.createLinearGradient(trackX, trackY, trackX + fillW, trackY);
-  fillGrad.addColorStop(0, "#9333ea");
-  fillGrad.addColorStop(0.5, "#c084fc");
-  fillGrad.addColorStop(1, "#06b6d4");
+  fillGrad.addColorStop(0, "#7c3aed");
+  fillGrad.addColorStop(0.5, "#9333ea");
+  fillGrad.addColorStop(1, "#0284c7");
 
   ctx.fillStyle = fillGrad;
   ctx.beginPath();
@@ -260,18 +280,18 @@ function renderPhoneScreenCanvas(
 
   ctx.textAlign = "left";
   ctx.font = "bold 24px 'JetBrains Mono', monospace";
-  ctx.fillStyle = "#34d399";
+  ctx.fillStyle = isLight ? "#059669" : "#34d399";
   ctx.fillText("✓ +350 XP hoje • 71.6% da temporada", cardX + 45, cardY + 358);
 
   // 6. Benefits Grid Title
   ctx.textAlign = "left";
   ctx.font = "800 42px 'Inter', system-ui, sans-serif";
-  ctx.fillStyle = "#ffffff";
+  ctx.fillStyle = isLight ? "#0F172A" : "#ffffff";
   ctx.fillText("Seus benefícios", 65, 930);
 
   ctx.textAlign = "right";
   ctx.font = "bold 30px 'Inter', system-ui, sans-serif";
-  ctx.fillStyle = "#c084fc";
+  ctx.fillStyle = isLight ? "#7C3AED" : "#c084fc";
   ctx.fillText("Ver todos ›", w - 65, 930);
 
   // 7. Benefits Cards (3 Columns)
@@ -281,9 +301,9 @@ function renderPhoneScreenCanvas(
   const bW = (w - 130 - bMargin * 2) / 3;
 
   const benefits = [
-    { title: "Salas VIP", sub: "Ilimitado", desc: "Aeroportos", color: "#c084fc", icon: "✈" },
-    { title: "Cashback", sub: "R$ 45,00", desc: "Disponível Pix", color: "#22d3ee", icon: "✦" },
-    { title: "Anuidade", sub: "Grátis", desc: "Cartão Black", color: "#60a5fa", icon: "💳" },
+    { title: "Salas VIP", sub: "Ilimitado", desc: "Aeroportos", color: isLight ? "#7C3AED" : "#c084fc", icon: "✈" },
+    { title: "Cashback", sub: "R$ 45,00", desc: "Disponível Pix", color: isLight ? "#0284C7" : "#22d3ee", icon: "✦" },
+    { title: "Anuidade", sub: "Grátis", desc: "Cartão Black", color: isLight ? "#2563EB" : "#60a5fa", icon: "💳" },
   ];
 
   benefits.forEach((b, idx) => {
@@ -291,20 +311,20 @@ function renderPhoneScreenCanvas(
 
     // Card background
     ctx.fillStyle = options.highlightBenefits
-      ? "rgba(38, 26, 62, 0.98)"
-      : "rgba(18, 20, 32, 0.92)";
+      ? (isLight ? "#EDE9FE" : "rgba(38, 26, 62, 0.98)")
+      : (isLight ? "#FFFFFF" : "rgba(18, 20, 32, 0.92)");
     ctx.beginPath();
     ctx.roundRect(bX, bY, bW, bH, 30);
     ctx.fill();
 
     ctx.strokeStyle = options.highlightBenefits
-      ? "rgba(192, 132, 252, 1.0)"
-      : "rgba(255, 255, 255, 0.12)";
+      ? (isLight ? "#7C3AED" : "rgba(192, 132, 252, 1.0)")
+      : (isLight ? "#E2E8F0" : "rgba(255, 255, 255, 0.12)");
     ctx.lineWidth = options.highlightBenefits ? 4.5 : 2;
     ctx.stroke();
 
     // Icon Circle
-    ctx.fillStyle = b.color + "30";
+    ctx.fillStyle = isLight ? "rgba(139, 92, 246, 0.1)" : b.color + "30";
     ctx.beginPath();
     ctx.arc(bX + bW / 2, bY + 62, 38, 0, Math.PI * 2);
     ctx.fill();
@@ -318,7 +338,7 @@ function renderPhoneScreenCanvas(
     // Title & Subtitle & Description
     ctx.textBaseline = "alphabetic";
     ctx.font = "800 32px 'Inter', system-ui, sans-serif";
-    ctx.fillStyle = "#ffffff";
+    ctx.fillStyle = isLight ? "#0F172A" : "#ffffff";
     ctx.fillText(b.title, bX + bW / 2, bY + 148);
 
     ctx.font = "bold 26px 'JetBrains Mono', monospace";
@@ -326,7 +346,7 @@ function renderPhoneScreenCanvas(
     ctx.fillText(b.sub, bX + bW / 2, bY + 195);
 
     ctx.font = "500 22px 'Inter', system-ui, sans-serif";
-    ctx.fillStyle = "#94a3b8";
+    ctx.fillStyle = isLight ? "#64748B" : "#94a3b8";
     ctx.fillText(b.desc, bX + bW / 2, bY + 238);
   });
 
@@ -334,11 +354,11 @@ function renderPhoneScreenCanvas(
   // Quest 1: Meta Semanal
   const q1Y = 1290;
   const qH = 145;
-  ctx.fillStyle = "rgba(22, 18, 35, 0.94)";
+  ctx.fillStyle = isLight ? "#FFFFFF" : "rgba(22, 18, 35, 0.94)";
   ctx.beginPath();
   ctx.roundRect(65, q1Y, w - 130, qH, 30);
   ctx.fill();
-  ctx.strokeStyle = "rgba(255, 255, 255, 0.1)";
+  ctx.strokeStyle = isLight ? "#E2E8F0" : "rgba(255, 255, 255, 0.1)";
   ctx.lineWidth = 2;
   ctx.stroke();
 
@@ -349,83 +369,83 @@ function renderPhoneScreenCanvas(
 
   ctx.textAlign = "left";
   ctx.font = "800 30px 'Inter', system-ui, sans-serif";
-  ctx.fillStyle = "#ffffff";
+  ctx.fillStyle = isLight ? "#0F172A" : "#ffffff";
   ctx.fillText("Meta Semanal: Poupança Automática", 150, q1Y + 58);
 
   ctx.font = "500 24px 'Inter', system-ui, sans-serif";
-  ctx.fillStyle = "#cbd5e1";
+  ctx.fillStyle = isLight ? "#64748B" : "#cbd5e1";
   ctx.fillText("Guarde R$ 50 para liberar cupons exclusivos", 150, q1Y + 104);
 
   ctx.textAlign = "right";
   ctx.font = "bold 28px 'JetBrains Mono', monospace";
-  ctx.fillStyle = "#34d399";
+  ctx.fillStyle = "#059669";
   ctx.fillText("+150 XP", w - 100, q1Y + qH / 2 + 10);
 
   // Quest 2: Desafio Hábitos Saudáveis
   const q2Y = 1465;
-  ctx.fillStyle = "rgba(22, 18, 35, 0.94)";
+  ctx.fillStyle = isLight ? "#FFFFFF" : "rgba(22, 18, 35, 0.94)";
   ctx.beginPath();
   ctx.roundRect(65, q2Y, w - 130, qH, 30);
   ctx.fill();
-  ctx.strokeStyle = "rgba(255, 255, 255, 0.1)";
+  ctx.strokeStyle = isLight ? "#E2E8F0" : "rgba(255, 255, 255, 0.1)";
   ctx.lineWidth = 2;
   ctx.stroke();
 
-  ctx.fillStyle = "#c084fc";
+  ctx.fillStyle = isLight ? "#7C3AED" : "#c084fc";
   ctx.beginPath();
   ctx.arc(115, q2Y + qH / 2, 13, 0, Math.PI * 2);
   ctx.fill();
 
   ctx.textAlign = "left";
   ctx.font = "800 30px 'Inter', system-ui, sans-serif";
-  ctx.fillStyle = "#ffffff";
+  ctx.fillStyle = isLight ? "#0F172A" : "#ffffff";
   ctx.fillText("Desafio: 14 Dias Sem Apostas", 150, q2Y + 58);
 
   ctx.font = "500 24px 'Inter', system-ui, sans-serif";
-  ctx.fillStyle = "#cbd5e1";
+  ctx.fillStyle = isLight ? "#64748B" : "#cbd5e1";
   ctx.fillText("Progresso da comunidade: 11/14 dias concluídos", 150, q2Y + 104);
 
   ctx.textAlign = "right";
   ctx.font = "bold 28px 'JetBrains Mono', monospace";
-  ctx.fillStyle = "#c084fc";
+  ctx.fillStyle = isLight ? "#7C3AED" : "#c084fc";
   ctx.fillText("+500 XP", w - 100, q2Y + qH / 2 + 10);
 
   // Quest 3: Cupom Ativo em Destaque
   const q3Y = 1640;
-  ctx.fillStyle = "rgba(22, 18, 35, 0.94)";
+  ctx.fillStyle = isLight ? "#FFFFFF" : "rgba(22, 18, 35, 0.94)";
   ctx.beginPath();
   ctx.roundRect(65, q3Y, w - 130, qH, 30);
   ctx.fill();
-  ctx.strokeStyle = "rgba(255, 255, 255, 0.1)";
+  ctx.strokeStyle = isLight ? "#E2E8F0" : "rgba(255, 255, 255, 0.1)";
   ctx.lineWidth = 2;
   ctx.stroke();
 
-  ctx.fillStyle = "#22d3ee";
+  ctx.fillStyle = isLight ? "#0284C7" : "#22d3ee";
   ctx.beginPath();
   ctx.arc(115, q3Y + qH / 2, 13, 0, Math.PI * 2);
   ctx.fill();
 
   ctx.textAlign = "left";
   ctx.font = "800 30px 'Inter', system-ui, sans-serif";
-  ctx.fillStyle = "#ffffff";
+  ctx.fillStyle = isLight ? "#0F172A" : "#ffffff";
   ctx.fillText("Cupom Ativo: 20% Off Starbucks", 150, q3Y + 58);
 
   ctx.font = "500 24px 'Inter', system-ui, sans-serif";
-  ctx.fillStyle = "#cbd5e1";
+  ctx.fillStyle = isLight ? "#64748B" : "#cbd5e1";
   ctx.fillText("Válido até 15/10 • Toque para resgate rápido", 150, q3Y + 104);
 
   ctx.textAlign = "right";
   ctx.font = "bold 26px 'JetBrains Mono', monospace";
-  ctx.fillStyle = "#22d3ee";
+  ctx.fillStyle = isLight ? "#0284C7" : "#22d3ee";
   ctx.fillText("Resgatar ›", w - 100, q3Y + qH / 2 + 10);
 
   // 9. Bottom Navigation Dock (5 Tabs)
   const navY = h - 210;
   const navH = 160;
-  ctx.fillStyle = "rgba(7, 8, 12, 0.97)";
+  ctx.fillStyle = isLight ? "rgba(255, 255, 255, 0.98)" : "rgba(7, 8, 12, 0.97)";
   ctx.fillRect(0, navY, w, navH);
 
-  ctx.strokeStyle = "rgba(255, 255, 255, 0.12)";
+  ctx.strokeStyle = isLight ? "#E2E8F0" : "rgba(255, 255, 255, 0.12)";
   ctx.lineWidth = 2;
   ctx.beginPath();
   ctx.moveTo(0, navY);
@@ -445,14 +465,14 @@ function renderPhoneScreenCanvas(
     const tX = i * tabWidth + tabWidth / 2;
     ctx.textAlign = "center";
     ctx.font = "40px 'Inter', sans-serif";
-    ctx.fillStyle = t.active ? "#c084fc" : "#64748b";
+    ctx.fillStyle = t.active ? (isLight ? "#7C3AED" : "#c084fc") : (isLight ? "#64748B" : "#64748b");
     ctx.fillText(t.icon, tX, navY + 62);
 
     ctx.font = t.active ? "bold 24px 'Inter', sans-serif" : "500 22px 'Inter', sans-serif";
     ctx.fillText(t.label, tX, navY + 105);
 
     if (t.active) {
-      ctx.fillStyle = "#c084fc";
+      ctx.fillStyle = isLight ? "#7C3AED" : "#c084fc";
       ctx.beginPath();
       ctx.arc(tX, navY + 122, 4.5, 0, Math.PI * 2);
       ctx.fill();
@@ -462,7 +482,7 @@ function renderPhoneScreenCanvas(
   // Home Indicator Bar (iOS)
   const barWidth = 280;
   const barYPos = h - 25;
-  ctx.fillStyle = "rgba(255, 255, 255, 0.75)";
+  ctx.fillStyle = isLight ? "rgba(15, 23, 42, 0.85)" : "rgba(255, 255, 255, 0.75)";
   ctx.beginPath();
   ctx.roundRect((w - barWidth) / 2, barYPos, barWidth, 8, 4);
   ctx.fill();
@@ -480,6 +500,13 @@ export function Phone3DModel({
   const mountRef = useRef<HTMLDivElement>(null);
   const screenCanvasRef = useRef<HTMLCanvasElement | null>(null);
   const screenTextureRef = useRef<THREE.CanvasTexture | null>(null);
+
+  const { theme } = useTheme();
+  const isLight = theme === "light";
+
+  const titaniumMatRef = useRef<THREE.MeshStandardMaterial | null>(null);
+  const buttonMatRef = useRef<THREE.MeshStandardMaterial | null>(null);
+  const cameraBumpMatRef = useRef<THREE.MeshStandardMaterial | null>(null);
 
   const getInitialRot = (val: number | MotionValue<number> | undefined, fallback: number) => {
     if (typeof val === "number") return val;
@@ -533,25 +560,34 @@ export function Phone3DModel({
     }
   }, [rotationZ]);
 
-  // Dynamically re-render screen canvas texture without re-mounting Three.js scene
+  // Dynamically re-render screen canvas texture and chassis materials without re-mounting Three.js scene
   useEffect(() => {
     if (screenCanvasRef.current && screenTextureRef.current) {
-      renderPhoneScreenCanvas(screenCanvasRef.current, { highlightBenefits, animateXp });
+      renderPhoneScreenCanvas(screenCanvasRef.current, { highlightBenefits, animateXp, isLight });
       screenTextureRef.current.needsUpdate = true;
     }
-  }, [highlightBenefits, animateXp]);
+    if (titaniumMatRef.current) {
+      titaniumMatRef.current.color.set(isLight ? 0xdddddf : 0x211736);
+    }
+    if (buttonMatRef.current) {
+      buttonMatRef.current.color.set(isLight ? 0xb0b0b8 : 0x4c356e);
+    }
+    if (cameraBumpMatRef.current) {
+      cameraBumpMatRef.current.color.set(isLight ? 0xe5e5ea : 0x181126);
+    }
+  }, [highlightBenefits, animateXp, isLight]);
 
   // Re-draw once fonts are fully ready so typography is pixel-perfect
   useEffect(() => {
     if (typeof document !== "undefined" && document.fonts) {
       document.fonts.ready.then(() => {
         if (screenCanvasRef.current && screenTextureRef.current) {
-          renderPhoneScreenCanvas(screenCanvasRef.current, { highlightBenefits, animateXp });
+          renderPhoneScreenCanvas(screenCanvasRef.current, { highlightBenefits, animateXp, isLight });
           screenTextureRef.current.needsUpdate = true;
         }
       });
     }
-  }, [highlightBenefits, animateXp]);
+  }, [highlightBenefits, animateXp, isLight]);
 
   useEffect(() => {
     const container = mountRef.current;
@@ -627,20 +663,22 @@ export function Phone3DModel({
     chassisGeo.center();
 
     const titaniumMat = new THREE.MeshStandardMaterial({
-      color: 0x211736, // Titanium Violet
+      color: isLight ? 0xdddddf : 0x211736,
       metalness: 0.88,
       roughness: 0.28,
     });
+    titaniumMatRef.current = titaniumMat;
 
     const chassisMesh = new THREE.Mesh(chassisGeo, titaniumMat);
     phoneGroup.add(chassisMesh);
 
     // B. Side Hardware Buttons
     const buttonMat = new THREE.MeshStandardMaterial({
-      color: 0x4c356e,
+      color: isLight ? 0xb0b0b8 : 0x4c356e,
       metalness: 0.95,
       roughness: 0.2,
     });
+    buttonMatRef.current = buttonMat;
 
     // Left Buttons: Volume Up, Volume Down, Action Button
     const volUpGeo = new THREE.BoxGeometry(0.06, 0.46, 0.12);
@@ -676,10 +714,11 @@ export function Phone3DModel({
     cameraBumpGeo.center();
 
     const cameraBumpMat = new THREE.MeshStandardMaterial({
-      color: 0x181126,
+      color: isLight ? 0xe5e5ea : 0x181126,
       metalness: 0.85,
       roughness: 0.32,
     });
+    cameraBumpMatRef.current = cameraBumpMat;
     const cameraBumpMesh = new THREE.Mesh(cameraBumpGeo, cameraBumpMat);
     cameraBumpMesh.position.set(-0.75, 2.3, -phoneDepth / 2 - 0.09);
     phoneGroup.add(cameraBumpMesh);
@@ -764,7 +803,7 @@ export function Phone3DModel({
     const screenCanvas = document.createElement("canvas");
     screenCanvas.width = 1024;
     screenCanvas.height = 2160;
-    renderPhoneScreenCanvas(screenCanvas, { highlightBenefits, animateXp });
+    renderPhoneScreenCanvas(screenCanvas, { highlightBenefits, animateXp, isLight });
     screenCanvasRef.current = screenCanvas;
 
     const screenTexture = new THREE.CanvasTexture(screenCanvas);

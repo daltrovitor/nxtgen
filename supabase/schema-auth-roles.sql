@@ -13,8 +13,8 @@ CREATE TABLE IF NOT EXISTS public.profiles (
   email TEXT NOT NULL UNIQUE,
   full_name TEXT NOT NULL,
   
-  -- Coluna OBRIGATÓRIA: 'role' ('user' para usuários normais, 'admin' para administradores)
-  role VARCHAR(20) NOT NULL DEFAULT 'user' CHECK (role IN ('user', 'admin')),
+  -- Coluna OBRIGATÓRIA: 'role' ('user', 'partner', 'staff', 'admin')
+  role VARCHAR(20) NOT NULL DEFAULT 'user' CHECK (role IN ('user', 'partner', 'staff', 'admin')),
   
   birth_date DATE,
   nxt_score INTEGER NOT NULL DEFAULT 250,

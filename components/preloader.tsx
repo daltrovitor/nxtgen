@@ -77,7 +77,7 @@ export function Preloader({ onComplete, durationMs = 3800 }: PreloaderProps) {
             filter: "blur(14px)",
             transition: { duration: 0.65, ease: [0.22, 1, 0.36, 1] },
           }}
-          className="fixed inset-0 z-[99999] flex flex-col items-center justify-center bg-[#000000] overflow-hidden select-none"
+          className="fixed inset-0 z-[99999] flex flex-col items-center justify-center bg-background overflow-hidden select-none transition-colors duration-200"
         >
           {/* Ambient Futuristic Glow Orbs */}
           <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[580px] h-[580px] bg-gradient-to-tr from-purple-600/25 via-violet-600/15 to-cyan-500/20 rounded-full blur-[120px] pointer-events-none animate-pulse" />
@@ -89,45 +89,45 @@ export function Preloader({ onComplete, durationMs = 3800 }: PreloaderProps) {
             transition={{ duration: 0.8, ease: "easeOut" }}
             className="relative flex flex-col items-center justify-center p-8 sm:p-12 max-w-sm w-[90%] mx-auto z-10"
           >
-            {/* Tech Box with Double Neon Borders (inspired by ashens.store) */}
-            <div className="relative p-6 sm:p-8 rounded-3xl bg-[#08090E]/90 border border-purple-500/30 shadow-[0_0_50px_rgba(139,92,246,0.25)] backdrop-blur-2xl flex flex-col items-center">
+            {/* Tech Box with Double Neon Borders */}
+            <div className="relative p-6 sm:p-8 rounded-3xl bg-card text-card-foreground border border-purple-300/60 dark:border-purple-500/30 shadow-[0_20px_60px_rgba(139,92,246,0.18)] dark:shadow-[0_0_50px_rgba(139,92,246,0.25)] backdrop-blur-2xl flex flex-col items-center transition-colors">
               
               {/* Animated Dashed Tech Ring */}
-              <div className="absolute -inset-[3px] rounded-[26px] border border-cyan-400/25 border-dashed pointer-events-none animate-[spin_20s_linear_infinite]" />
+              <div className="absolute -inset-[3px] rounded-[26px] border border-cyan-500/35 dark:border-cyan-400/25 border-dashed pointer-events-none animate-[spin_20s_linear_infinite]" />
 
               {/* Glowing Corner Accents */}
-              <div className="absolute top-2 left-2 w-2 h-2 border-t-2 border-l-2 border-purple-400" />
-              <div className="absolute top-2 right-2 w-2 h-2 border-t-2 border-r-2 border-purple-400" />
-              <div className="absolute bottom-2 left-2 w-2 h-2 border-b-2 border-l-2 border-cyan-400" />
-              <div className="absolute bottom-2 right-2 w-2 h-2 border-b-2 border-r-2 border-cyan-400" />
+              <div className="absolute top-2 left-2 w-2 h-2 border-t-2 border-l-2 border-purple-600 dark:border-purple-400" />
+              <div className="absolute top-2 right-2 w-2 h-2 border-t-2 border-r-2 border-purple-600 dark:border-purple-400" />
+              <div className="absolute bottom-2 left-2 w-2 h-2 border-b-2 border-l-2 border-cyan-600 dark:border-cyan-400" />
+              <div className="absolute bottom-2 right-2 w-2 h-2 border-b-2 border-r-2 border-cyan-600 dark:border-cyan-400" />
 
               {/* Logo with Ambient Bloom */}
               <div className="relative mb-5 flex items-center justify-center">
-                <div className="absolute inset-0 bg-purple-500/30 blur-2xl rounded-full scale-125 pointer-events-none" />
+                <div className="absolute inset-0 bg-purple-500/20 dark:bg-purple-500/30 blur-2xl rounded-full scale-125 pointer-events-none" />
                 <Image
                   src="/logonxtgen.png"
                   alt="NXTGEN"
                   width={2065}
                   height={762}
                   priority
-                  className="h-16 sm:h-20 w-auto object-contain relative z-10 drop-shadow-[0_0_30px_rgba(139,92,246,0.7)]"
+                  className="h-16 sm:h-20 w-auto object-contain relative z-10 drop-shadow-[0_0_30px_rgba(139,92,246,0.5)] dark:drop-shadow-[0_0_30px_rgba(139,92,246,0.7)]"
                   style={{ width: "auto" }}
                 />
               </div>
 
               {/* Subtitle / Motto */}
               <div className="text-center space-y-1 mb-7">
-                <p className="font-mono text-[10px] sm:text-xs tracking-[0.3em] uppercase text-purple-400 font-semibold">
+                <p className="font-mono text-[10px] sm:text-xs tracking-[0.3em] uppercase text-purple-700 dark:text-purple-400 font-bold">
                   Build. Don&apos;t Bet.
                 </p>
-                <p className="text-[11px] text-gray-500 font-mono tracking-wider">
+                <p className="text-[11px] text-muted-foreground font-mono tracking-wider">
                   O Futuro Paga Mais
                 </p>
               </div>
 
               {/* Progress Bar Container */}
               <div className="w-56 sm:w-64 space-y-3">
-                <div className="relative h-1.5 w-full bg-white/10 rounded-full overflow-hidden">
+                <div className="relative h-1.5 w-full bg-slate-200 dark:bg-white/10 rounded-full overflow-hidden">
                   {/* Glowing progress line */}
                   <motion.div
                     className="h-full bg-gradient-to-r from-purple-600 via-violet-500 to-cyan-400 rounded-full"
@@ -142,9 +142,9 @@ export function Preloader({ onComplete, durationMs = 3800 }: PreloaderProps) {
                 </div>
 
                 {/* Percentage and Status */}
-                <div className="flex items-center justify-between font-mono text-[11px] text-gray-400">
-                  <span className="text-cyan-400 font-bold tracking-widest">{progress}%</span>
-                  <span className="text-gray-500 text-[10px] uppercase">v2.6 SECURE</span>
+                <div className="flex items-center justify-between font-mono text-[11px] text-muted-foreground">
+                  <span className="text-cyan-700 dark:text-cyan-400 font-bold tracking-widest">{progress}%</span>
+                  <span className="text-muted-foreground/80 text-[10px] uppercase">v2.6 SECURE</span>
                 </div>
               </div>
 
@@ -156,7 +156,7 @@ export function Preloader({ onComplete, durationMs = 3800 }: PreloaderProps) {
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0 }}
                   transition={{ duration: 0.2 }}
-                  className="font-mono text-[10px] sm:text-[11px] text-gray-400 tracking-wider text-center"
+                  className="font-mono text-[10px] sm:text-[11px] text-muted-foreground tracking-wider text-center"
                 >
                   {statusText}
                 </motion.p>

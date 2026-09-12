@@ -3,6 +3,7 @@
 import React, { useState, useMemo } from "react";
 import { SystemVoucher } from "@/lib/pass-store";
 import { Ticket, CheckCircle2, RotateCcw, Trash2, Search, RefreshCw, X } from "lucide-react";
+import { useConfirmToast } from "@/components/ui/confirm-toast";
 
 interface AdminVouchersTabProps {
   vouchers: SystemVoucher[];
@@ -10,6 +11,7 @@ interface AdminVouchersTabProps {
 }
 
 export function AdminVouchersTab({ vouchers, onRefresh }: AdminVouchersTabProps) {
+  const { confirmDelete, showToast } = useConfirmToast();
   const [filterStatus, setFilterStatus] = useState<"all" | "valid" | "used">("all");
   const [searchQuery, setSearchQuery] = useState("");
   const [feedback, setFeedback] = useState<{ type: "success" | "error"; text: string } | null>(null);
@@ -57,18 +59,27 @@ export function AdminVouchersTab({ vouchers, onRefresh }: AdminVouchersTabProps)
   };
 
   const handleDelete = async (id: string, code: string) => {
-    if (!confirm(`Deseja revogar permanentemente o voucher ${code}?`)) return;
+    const confirmed = await confirmDelete({
+      title: "Revogar Voucher",
+      message: `Deseja realmente revogar permanentemente o voucher "${code}"? Essa ação não pode ser desfeita.`,
+      confirmText: "Sim, Revogar",
+      cancelText: "Cancelar",
+    });
+    if (!confirmed) return;
 
     try {
       const res = await fetch(`/api/admin/vouchers?id=${id}`, { method: "DELETE" });
       const data = await res.json();
       if (res.ok && data.success) {
+        showToast("success", `Voucher ${code} revogado com sucesso.`);
         setFeedback({ type: "success", text: `Voucher ${code} revogado.` });
         await onRefresh();
       } else {
+        showToast("error", data.error || "Erro ao revogar voucher.");
         setFeedback({ type: "error", text: data.error || "Erro ao revogar." });
       }
     } catch (err: any) {
+      showToast("error", err.message || "Erro de conexão.");
       setFeedback({ type: "error", text: err.message || "Erro de conexão." });
     }
   };

@@ -7,7 +7,7 @@ export interface AdminUser {
   id: string;
   email: string;
   name: string;
-  role: "user" | "admin";
+  role: "user" | "partner" | "staff" | "admin";
   nxtScore: number;
   nxtLevel: number;
   walletBalance: number;
@@ -31,7 +31,7 @@ export function AdminMembersTab({ users, onRefresh }: AdminMembersTabProps) {
   const [formLevel, setFormLevel] = useState<number>(1);
   const [formScore, setFormScore] = useState<number>(0);
   const [formBalance, setFormBalance] = useState<number>(0);
-  const [formRole, setFormRole] = useState<"user" | "admin">("user");
+  const [formRole, setFormRole] = useState<"user" | "partner" | "staff" | "admin">("user");
 
   const handleOpenEdit = (u: AdminUser) => {
     setEditingUser(u);
@@ -114,15 +114,15 @@ export function AdminMembersTab({ users, onRefresh }: AdminMembersTabProps) {
       {/* Header Info */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h2 className="text-xl font-bold font-heading text-white">Membros do NXT PASS</h2>
-          <p className="text-xs text-gray-400 mt-0.5">
+          <h2 className="text-xl font-bold font-heading text-foreground">Membros do NXT PASS</h2>
+          <p className="text-xs text-muted-foreground mt-0.5">
             Visualize os membros ativos, altere seus níveis (1-10), pontuações de XP e gerencie vouchers resgatados
           </p>
         </div>
 
         <button
           onClick={onRefresh}
-          className="inline-flex items-center gap-2 px-3 py-2 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-xs font-mono text-gray-300 transition-colors cursor-pointer self-start sm:self-auto"
+          className="inline-flex items-center gap-2 px-3 py-2 rounded-xl bg-card hover:bg-muted border border-border text-xs font-mono text-foreground transition-colors cursor-pointer self-start sm:self-auto"
         >
           <RefreshCw className="w-3.5 h-3.5" />
           <span>Atualizar Membros</span>
@@ -133,23 +133,23 @@ export function AdminMembersTab({ users, onRefresh }: AdminMembersTabProps) {
         <div
           className={`p-3.5 rounded-xl border text-xs flex items-center justify-between ${
             feedback.type === "success"
-              ? "bg-emerald-950/40 border-emerald-500/30 text-emerald-300"
-              : "bg-red-950/40 border-red-500/30 text-red-300"
+              ? "bg-emerald-50 dark:bg-emerald-950/40 border-emerald-300 dark:border-emerald-500/30 text-emerald-800 dark:text-emerald-300"
+              : "bg-red-50 dark:bg-red-950/40 border-red-300 dark:border-red-500/30 text-red-800 dark:text-red-300"
           }`}
         >
           <span>{feedback.text}</span>
-          <button onClick={() => setFeedback(null)} className="text-gray-400 hover:text-white">
+          <button onClick={() => setFeedback(null)} className="text-muted-foreground hover:text-foreground">
             <X className="w-4 h-4" />
           </button>
         </div>
       )}
 
       {/* Users Table */}
-      <div className="bg-[#090A0F] border border-white/10 rounded-2xl overflow-hidden shadow-xl">
+      <div className="bg-card border border-border rounded-2xl overflow-hidden shadow-xl">
         <div className="overflow-x-auto">
           <table className="w-full text-left text-xs">
             <thead>
-              <tr className="border-b border-white/10 bg-white/[0.02] text-gray-400 font-mono">
+              <tr className="border-b border-border bg-muted/40 text-muted-foreground font-mono">
                 <th className="py-3 px-4">Membro</th>
                 <th className="py-3 px-4">Papel (Role)</th>
                 <th className="py-3 px-4">Nível NXT</th>
@@ -159,20 +159,22 @@ export function AdminMembersTab({ users, onRefresh }: AdminMembersTabProps) {
                 <th className="py-3 px-4 text-right">Ações</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-white/5 text-gray-200">
+            <tbody className="divide-y divide-border text-foreground">
               {users.map((u) => (
-                <tr key={u.id} className="hover:bg-white/[0.02] transition-colors">
+                <tr key={u.id} className="hover:bg-muted/30 transition-colors">
                   <td className="py-3.5 px-4">
-                    <div className="font-semibold text-white font-heading">{u.name}</div>
-                    <div className="text-[11px] text-gray-400 font-mono">{u.email}</div>
+                    <div className="font-semibold text-foreground font-heading">{u.name}</div>
+                    <div className="text-[11px] text-muted-foreground font-mono">{u.email}</div>
                   </td>
 
                   <td className="py-3.5 px-4">
                     <span
                       className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-mono uppercase tracking-wider ${
                         u.role === "admin"
-                          ? "bg-[#8B24F0]/20 text-[#C084FC] border border-[#8B24F0]/40"
-                          : "bg-white/5 text-gray-300 border border-white/10"
+                          ? "bg-purple-100 dark:bg-[#8B24F0]/20 text-purple-700 dark:text-[#C084FC] border border-purple-300 dark:border-[#8B24F0]/40"
+                          : u.role === "partner"
+                          ? "bg-amber-100 dark:bg-amber-500/20 text-amber-800 dark:text-amber-300 border border-amber-300 dark:border-amber-500/40"
+                          : "bg-muted text-muted-foreground border border-border"
                       }`}
                     >
                       {u.role === "admin" && <Shield className="w-3 h-3" />}
@@ -181,25 +183,25 @@ export function AdminMembersTab({ users, onRefresh }: AdminMembersTabProps) {
                   </td>
 
                   <td className="py-3.5 px-4 font-mono">
-                    <span className="inline-block px-2.5 py-1 rounded-lg bg-[#8B24F0]/15 border border-[#8B24F0]/30 text-white font-bold">
+                    <span className="inline-block px-2.5 py-1 rounded-lg bg-purple-100 dark:bg-[#8B24F0]/15 border border-purple-300 dark:border-[#8B24F0]/30 text-purple-800 dark:text-white font-bold">
                       LVL {u.nxtLevel}
                     </span>
                   </td>
 
-                  <td className="py-3.5 px-4 font-mono text-gray-300">
-                    <span className="text-[#C084FC] font-bold">{u.nxtScore.toLocaleString()}</span> XP
+                  <td className="py-3.5 px-4 font-mono">
+                    <span className="text-purple-600 dark:text-[#C084FC] font-bold">{u.nxtScore.toLocaleString()}</span> <span className="text-muted-foreground">XP</span>
                   </td>
 
-                  <td className="py-3.5 px-4 font-mono text-gray-300">
+                  <td className="py-3.5 px-4 font-mono text-foreground font-medium">
                     R$ {Number(u.walletBalance || 0).toFixed(2)}
                   </td>
 
                   <td className="py-3.5 px-4">
                     <button
                       onClick={() => setSelectedUserVouchers(u)}
-                      className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 text-gray-300 hover:text-white font-mono text-[11px] transition-colors cursor-pointer"
+                      className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-card hover:bg-muted border border-border text-foreground font-mono text-[11px] transition-colors cursor-pointer"
                     >
-                      <Ticket className="w-3.5 h-3.5 text-[#8B24F0]" />
+                      <Ticket className="w-3.5 h-3.5 text-purple-600 dark:text-[#8B24F0]" />
                       <span>{u.vouchersCount || (u.vouchers?.length ?? 0)} resgates</span>
                     </button>
                   </td>
@@ -223,17 +225,17 @@ export function AdminMembersTab({ users, onRefresh }: AdminMembersTabProps) {
       {/* MODAL: Edit Member Level & XP */}
       {editingUser && (
         <div className="fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-4">
-          <div className="max-w-md w-full bg-[#090A0F] border border-white/15 rounded-2xl p-6 shadow-2xl space-y-5 text-left">
+          <div className="max-w-md w-full bg-[#0B0C12] text-white border border-white/15 rounded-2xl p-6 shadow-2xl space-y-5 text-left">
             <div className="flex items-center justify-between border-b border-white/10 pb-3">
               <div>
                 <h3 className="text-lg font-bold font-heading text-white">
                   Alterar Membro
                 </h3>
-                <p className="text-xs text-gray-400">{editingUser.name} ({editingUser.email})</p>
+                <p className="text-xs text-white/50">{editingUser.name} ({editingUser.email})</p>
               </div>
               <button
                 onClick={() => setEditingUser(null)}
-                className="text-gray-400 hover:text-white p-1 rounded-lg hover:bg-white/10 transition-colors"
+                className="text-white/50 hover:text-white p-1 rounded-lg hover:bg-white/10 transition-colors cursor-pointer"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -242,28 +244,28 @@ export function AdminMembersTab({ users, onRefresh }: AdminMembersTabProps) {
             <form onSubmit={handleSaveEdit} className="space-y-4">
               {/* Level Selector */}
               <div className="space-y-1">
-                <label className="text-xs font-mono text-gray-300">
+                <label className="text-xs font-mono text-white/80 font-medium">
                   NXT Level (Nível do Membro)
                 </label>
                 <select
                   value={formLevel}
                   onChange={(e) => setFormLevel(Number(e.target.value))}
-                  className="w-full px-3 py-2 rounded-xl bg-[#030407] border border-white/10 text-sm text-white font-mono focus:border-[#8B24F0] focus:outline-none"
+                  className="w-full px-3.5 py-2.5 rounded-xl bg-[#030407] border border-white/15 text-sm text-white font-mono focus:border-[#8B24F0] focus:outline-none transition-colors"
                 >
                   {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((lvl) => (
-                    <option key={lvl} value={lvl} className="bg-[#090A0F] text-white">
+                    <option key={lvl} value={lvl} className="bg-[#0B0C12] text-white">
                       Level {lvl} {lvl === 1 ? "(Iniciante)" : lvl >= 5 ? "(Elite/Black)" : "(Avançado)"}
                     </option>
                   ))}
                 </select>
-                <p className="text-[11px] text-gray-500">
+                <p className="text-[11px] text-white/40">
                   Ao alterar o nível, os benefícios liberados no dashboard do usuário mudam instantaneamente.
                 </p>
               </div>
 
               {/* XP Score */}
               <div className="space-y-1">
-                <label className="text-xs font-mono text-gray-300">
+                <label className="text-xs font-mono text-white/80 font-medium">
                   Pontuação de XP (nxtScore)
                 </label>
                 <input
@@ -272,13 +274,13 @@ export function AdminMembersTab({ users, onRefresh }: AdminMembersTabProps) {
                   onChange={(e) => setFormScore(Number(e.target.value))}
                   min={0}
                   step={50}
-                  className="w-full px-3 py-2 rounded-xl bg-[#030407] border border-white/10 text-sm text-white font-mono focus:border-[#8B24F0] focus:outline-none"
+                  className="w-full px-3.5 py-2.5 rounded-xl bg-[#030407] border border-white/15 text-sm text-white font-mono focus:border-[#8B24F0] focus:outline-none transition-colors"
                 />
               </div>
 
               {/* Wallet Balance */}
               <div className="space-y-1">
-                <label className="text-xs font-mono text-gray-300">
+                <label className="text-xs font-mono text-white/80 font-medium">
                   Saldo em Carteira (R$)
                 </label>
                 <input
@@ -287,22 +289,23 @@ export function AdminMembersTab({ users, onRefresh }: AdminMembersTabProps) {
                   onChange={(e) => setFormBalance(Number(e.target.value))}
                   min={0}
                   step={0.5}
-                  className="w-full px-3 py-2 rounded-xl bg-[#030407] border border-white/10 text-sm text-white font-mono focus:border-[#8B24F0] focus:outline-none"
+                  className="w-full px-3.5 py-2.5 rounded-xl bg-[#030407] border border-white/15 text-sm text-white font-mono focus:border-[#8B24F0] focus:outline-none transition-colors"
                 />
               </div>
 
               {/* Role */}
               <div className="space-y-1">
-                <label className="text-xs font-mono text-gray-300">
+                <label className="text-xs font-mono text-white/80 font-medium">
                   Papel de Acesso (Role)
                 </label>
                 <select
                   value={formRole}
-                  onChange={(e) => setFormRole(e.target.value as "user" | "admin")}
-                  className="w-full px-3 py-2 rounded-xl bg-[#030407] border border-white/10 text-sm text-white font-mono focus:border-[#8B24F0] focus:outline-none"
+                  onChange={(e) => setFormRole(e.target.value as "user" | "partner" | "staff" | "admin")}
+                  className="w-full px-3.5 py-2.5 rounded-xl bg-[#030407] border border-white/15 text-sm text-white font-mono focus:border-[#8B24F0] focus:outline-none transition-colors"
                 >
-                  <option value="user" className="bg-[#090A0F] text-white">Usuário Comum (user)</option>
-                  <option value="admin" className="bg-[#090A0F] text-white">Administrador (admin)</option>
+                  <option value="user" className="bg-[#0B0C12] text-white">Usuário Comum (user)</option>
+                  <option value="partner" className="bg-[#0B0C12] text-white">Parceiro Credenciado (partner)</option>
+                  <option value="admin" className="bg-[#0B0C12] text-white">Administrador (admin)</option>
                 </select>
               </div>
 
@@ -310,14 +313,14 @@ export function AdminMembersTab({ users, onRefresh }: AdminMembersTabProps) {
                 <button
                   type="button"
                   onClick={() => setEditingUser(null)}
-                  className="flex-1 py-2.5 rounded-xl bg-white/5 hover:bg-white/10 text-xs font-mono text-gray-300 transition-colors cursor-pointer"
+                  className="flex-1 py-2.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-xs font-mono text-white/70 hover:text-white transition-colors cursor-pointer"
                 >
                   Cancelar
                 </button>
                 <button
                   type="submit"
                   disabled={isSaving}
-                  className="flex-1 py-2.5 rounded-xl bg-[#8B24F0] hover:bg-[#781DD6] disabled:opacity-50 text-xs font-bold font-heading text-white transition-colors cursor-pointer flex items-center justify-center gap-1.5"
+                  className="flex-1 py-2.5 rounded-xl bg-[#8B24F0] hover:bg-[#781DD6] disabled:opacity-50 text-xs font-bold font-heading text-white transition-colors cursor-pointer flex items-center justify-center gap-1.5 shadow-lg shadow-[#8B24F0]/25"
                 >
                   {isSaving ? "Salvando..." : "Salvar Alterações"}
                 </button>
@@ -330,17 +333,17 @@ export function AdminMembersTab({ users, onRefresh }: AdminMembersTabProps) {
       {/* DRAWER/MODAL: Member Vouchers Inspector */}
       {selectedUserVouchers && (
         <div className="fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-4">
-          <div className="max-w-lg w-full bg-[#090A0F] border border-white/15 rounded-2xl p-6 shadow-2xl space-y-4 text-left max-h-[85vh] flex flex-col">
+          <div className="max-w-lg w-full bg-[#0B0C12] text-white border border-white/15 rounded-2xl p-6 shadow-2xl space-y-4 text-left max-h-[85vh] flex flex-col">
             <div className="flex items-center justify-between border-b border-white/10 pb-3">
               <div>
                 <h3 className="text-lg font-bold font-heading text-white">
                   Vouchers de {selectedUserVouchers.name}
                 </h3>
-                <p className="text-xs text-gray-400">{selectedUserVouchers.email}</p>
+                <p className="text-xs text-white/50">{selectedUserVouchers.email}</p>
               </div>
               <button
                 onClick={() => setSelectedUserVouchers(null)}
-                className="text-gray-400 hover:text-white p-1 rounded-lg hover:bg-white/10 transition-colors"
+                className="text-white/50 hover:text-white p-1 rounded-lg hover:bg-white/10 transition-colors cursor-pointer"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -348,7 +351,7 @@ export function AdminMembersTab({ users, onRefresh }: AdminMembersTabProps) {
 
             <div className="flex-1 overflow-y-auto space-y-3 pr-1">
               {(!selectedUserVouchers.vouchers || selectedUserVouchers.vouchers.length === 0) ? (
-                <p className="text-xs text-gray-400 py-6 text-center">
+                <p className="text-xs text-white/50 py-6 text-center">
                   Este membro ainda não resgatou nenhum voucher.
                 </p>
               ) : (
@@ -361,10 +364,10 @@ export function AdminMembersTab({ users, onRefresh }: AdminMembersTabProps) {
                       <div className="font-mono text-xs font-bold text-white tracking-wider">
                         {v.code}
                       </div>
-                      <div className="text-xs text-gray-300 font-medium mt-0.5">
+                      <div className="text-xs text-white/70 font-medium mt-0.5">
                         {v.partnerName} • {v.benefitTitle || v.discountLabel}
                       </div>
-                      <div className="text-[10px] text-gray-500 font-mono mt-0.5">
+                      <div className="text-[10px] text-white/40 font-mono mt-0.5">
                         Resgatado em: {v.redeemedAt}
                       </div>
                     </div>
@@ -374,7 +377,7 @@ export function AdminMembersTab({ users, onRefresh }: AdminMembersTabProps) {
                         className={`text-[10px] font-mono px-2 py-0.5 rounded uppercase ${
                           v.status === "valid"
                             ? "bg-emerald-950/60 text-emerald-400 border border-emerald-500/30"
-                            : "bg-gray-800 text-gray-400 border border-gray-700"
+                            : "bg-white/5 text-white/40 border border-white/10"
                         }`}
                       >
                         {v.status === "valid" ? "Válido" : "Utilizado"}
@@ -382,7 +385,7 @@ export function AdminMembersTab({ users, onRefresh }: AdminMembersTabProps) {
 
                       <button
                         onClick={() => handleToggleVoucherStatus(v.id, v.status)}
-                        className="px-2.5 py-1 rounded bg-white/5 hover:bg-white/10 text-[11px] font-mono text-gray-300 hover:text-white border border-white/10 transition-colors cursor-pointer"
+                        className="px-2.5 py-1 rounded bg-white/5 hover:bg-white/10 text-[11px] font-mono text-white/70 hover:text-white border border-white/10 transition-colors cursor-pointer"
                         title="Alternar entre Válido e Utilizado"
                       >
                         {v.status === "valid" ? "Validar" : "Reativar"}

@@ -1,31 +1,17 @@
 import { NextRequest, NextResponse } from "next/server";
-import { cookies } from "next/headers";
-import { userStore, verifySessionToken, AUTH_COOKIE_NAME } from "@/lib/auth";
+import { userStore, verifyAdminRequest } from "@/lib/auth";
 import { z } from "zod";
 
 const RoleUpdateSchema = z.object({
   emailOrId: z.string().min(1, "Identificador do usuário obrigatório"),
-  newRole: z.enum(["user", "admin"]),
+  newRole: z.enum(["user", "partner", "admin"]),
 });
 
 export async function POST(req: NextRequest) {
   try {
-    const cookieStore = await cookies();
-    const token = cookieStore.get(AUTH_COOKIE_NAME)?.value;
-
-    if (!token) {
-      return NextResponse.json(
-        { error: "Não autenticado." },
-        { status: 401 }
-      );
-    }
-
-    const { valid, payload } = verifySessionToken(token);
-    if (!valid || !payload || payload.role !== "admin") {
-      return NextResponse.json(
-        { error: "Apenas administradores (role = 'admin') podem alterar papéis." },
-        { status: 403 }
-      );
+    const auth = await verifyAdminRequest(req);
+    if (!auth.authorized) {
+      return NextResponse.json({ error: auth.error }, { status: auth.status });
     }
 
     const body = await req.json();
@@ -38,9 +24,60 @@ export async function POST(req: NextRequest) {
     }
 
     const { emailOrId, newRole } = parseResult.data;
-    const updated = userStore.updateRole(emailOrId, newRole);
 
-    if (!updated) {
+    let supabaseSuccess = false;
+    let targetUser: any = null;
+
+    // 1. Try Supabase
+    try {
+      const { supabaseAdmin } = await import("@/lib/supabase/client");
+      if (supabaseAdmin) {
+        let query = supabaseAdmin.from("profiles").select("*");
+        if (emailOrId.includes("@")) {
+          query = query.eq("email", emailOrId.toLowerCase().trim());
+        } else {
+          query = query.eq("id", emailOrId);
+        }
+        const { data: profile } = await query.maybeSingle();
+
+        if (profile) {
+          // Always update user_metadata in auth.users
+          await supabaseAdmin.auth.admin.updateUserById(profile.id, {
+            user_metadata: { role: newRole },
+          });
+
+          // Attempt updating profiles table (might have check constraint)
+          try {
+            await supabaseAdmin.from("profiles").update({ role: newRole }).eq("id", profile.id);
+          } catch (e) {
+            console.warn("Profiles role column update constraint bypassed:", e);
+          }
+
+          targetUser = {
+            id: profile.id,
+            email: profile.email,
+            name: profile.full_name || profile.name,
+            role: newRole,
+          };
+          supabaseSuccess = true;
+        }
+      }
+    } catch (e) {
+      console.warn("Supabase role update notice:", e);
+    }
+
+    // 2. Also sync in-memory userStore
+    const updated = userStore.updateRole(emailOrId, newRole);
+    if (updated) {
+      targetUser = {
+        id: updated.id,
+        email: updated.email,
+        name: updated.fullName,
+        role: updated.role,
+      };
+    }
+
+    if (!supabaseSuccess && !updated) {
       return NextResponse.json(
         { error: "Usuário não encontrado." },
         { status: 404 }
@@ -49,13 +86,8 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({
       success: true,
-      message: `Papel do usuário ${updated.email} alterado com sucesso para '${updated.role}'!`,
-      user: {
-        id: updated.id,
-        email: updated.email,
-        name: updated.fullName,
-        role: updated.role,
-      },
+      message: `Papel do usuário ${targetUser?.email || emailOrId} alterado com sucesso para '${newRole}'!`,
+      user: targetUser,
     });
   } catch (error: any) {
     return NextResponse.json(

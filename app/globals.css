@@ -43,7 +43,8 @@
   --radius-4xl: calc(var(--radius) * 2.6);
 }
 
-:root {
+:root,
+.dark {
   --background: #000000;
   --foreground: #F3F4F6;
   --card: #0A0B0E;
@@ -63,6 +64,32 @@
   --input: rgba(255, 255, 255, 0.12);
   --ring: #8B5CF6;
   --radius: 0.75rem;
+
+  color-scheme: dark;
+}
+
+.light {
+  --background: #F8FAFC;
+  --foreground: #0F172A;
+  --card: #FFFFFF;
+  --card-foreground: #0F172A;
+  --popover: #FFFFFF;
+  --popover-foreground: #0F172A;
+  --primary: #7C3AED;
+  --primary-foreground: #FFFFFF;
+  --secondary: #F1F5F9;
+  --secondary-foreground: #0F172A;
+  --muted: #F1F5F9;
+  --muted-foreground: #64748B;
+  --accent: #0284C7;
+  --accent-foreground: #FFFFFF;
+  --destructive: #EF4444;
+  --border: #E2E8F0;
+  --input: #E2E8F0;
+  --ring: #7C3AED;
+  --radius: 0.75rem;
+
+  color-scheme: light;
 }
 
 @layer base {
@@ -76,7 +103,7 @@
   }
   html,
   body {
-    background-color: #000000;
+    background-color: var(--background);
     color: var(--foreground);
     overflow-x: clip;
     font-feature-settings: "cv02", "cv03", "cv04", "cv11";
@@ -157,4 +184,251 @@
 
 .animate-island-pulse {
   animation: island-pulse 4s ease-in-out infinite;
+}
+
+/* =========================================================================
+   LIGHT MODE ADAPTATIONS & HIGH CONTRAST ELEVATION
+   Polishes all cards, text gradients, alerts and inputs for light mode.
+   ========================================================================= */
+
+.light body {
+  background-color: #F8FAFC !important;
+  color: #0F172A !important;
+}
+
+/* Hardcoded dark surfaces become clean cards */
+.light .bg-\[\#000000\],
+.light .bg-black {
+  background-color: #F8FAFC !important;
+}
+
+.light .bg-\[\#000000\]\/90 {
+  background-color: rgba(248, 250, 252, 0.92) !important;
+}
+
+.light .bg-\[\#090A0F\],
+.light .bg-\[\#0A0B0E\],
+.light .bg-\[\#08090E\],
+.light .bg-\[\#08090E\]\/85,
+.light .bg-\[\#06070B\],
+.light .bg-\[\#020205\],
+.light .bg-\[\#0A0B10\],
+.light .bg-\[\#0B0C12\],
+.light .bg-\[\#0E1018\],
+.light .bg-\[\#0B0D18\],
+.light .bg-\[\#0A0D18\],
+.light .bg-\[\#12141F\],
+.light .bg-\[\#0F121C\],
+.light .bg-\[\#0F121C\]\/90,
+.light .bg-\[\#13111C\],
+.light .bg-\[\#090A0F\]\/95 {
+  background-color: #FFFFFF !important;
+  border-color: #E2E8F0 !important;
+  box-shadow: 0 4px 20px -2px rgba(15, 23, 42, 0.05), 0 1px 3px rgba(15, 23, 42, 0.04);
+}
+
+.light .bg-\[\#12151E\],
+.light .bg-\[\#141722\] {
+  background-color: #F1F5F9 !important;
+}
+
+/* Scrollytelling desktop sections should NOT be boxed cards in light mode */
+@media (min-width: 640px) {
+  .light .sm\:bg-transparent {
+    background-color: transparent !important;
+    border-color: transparent !important;
+    box-shadow: none !important;
+  }
+}
+
+/* Secondary dark buttons (e.g. Explorar Benefícios) */
+.light .bg-\[\#13151F\],
+.light .bg-\[\#121622\]\/80,
+.light .bg-\[\#121622\] {
+  background-color: #F1F5F9 !important;
+  color: #0F172A !important;
+  border-color: #CBD5E1 !important;
+}
+
+.light .bg-\[\#13151F\]:hover,
+.light .bg-\[\#121622\]\/80:hover {
+  background-color: #E2E8F0 !important;
+  color: #000000 !important;
+}
+
+/* Subtle surfaces */
+.light .bg-white\/5 {
+  background-color: rgba(15, 23, 42, 0.04) !important;
+}
+
+.light .bg-white\/10 {
+  background-color: rgba(15, 23, 42, 0.08) !important;
+}
+
+.light .hover\:bg-white\/5:hover {
+  background-color: rgba(15, 23, 42, 0.06) !important;
+}
+
+.light .hover\:bg-white\/10:hover {
+  background-color: rgba(15, 23, 42, 0.1) !important;
+}
+
+/* Inner dark level/stat boxes (e.g. PassLevelBanner right card) */
+.light .bg-black\/60,
+.light .bg-black\/80 {
+  background-color: #F1F5F9 !important;
+  border-color: #E2E8F0 !important;
+}
+
+/* Alert banners (Admin & Modals) */
+.light .bg-red-950\/40,
+.light .bg-red-950\/60 {
+  background-color: #FEF2F2 !important;
+  border-color: #FECACA !important;
+  color: #B91C1C !important;
+}
+.light .bg-red-950\/40 *,
+.light .bg-red-950\/60 * {
+  color: #B91C1C !important;
+}
+
+.light .bg-emerald-950\/40,
+.light .bg-emerald-950\/60 {
+  background-color: #ECFDF5 !important;
+  border-color: #A7F3D0 !important;
+  color: #047857 !important;
+}
+.light .bg-emerald-950\/40 *,
+.light .bg-emerald-950\/60 * {
+  color: #047857 !important;
+}
+
+/* Form Inputs & Modals */
+.light input.bg-\[\#030407\],
+.light select.bg-\[\#030407\],
+.light textarea.bg-\[\#030407\],
+.light .bg-\[\#030407\] {
+  background-color: #F8FAFC !important;
+  border-color: #CBD5E1 !important;
+  color: #0F172A !important;
+}
+
+.light input.bg-\[\#030407\]:focus,
+.light select.bg-\[\#030407\]:focus,
+.light textarea.bg-\[\#030407\]:focus {
+  background-color: #FFFFFF !important;
+  border-color: #7C3AED !important;
+}
+
+/* Auth Card (Landing Page & Login) */
+.light .gsap-auth-card {
+  background-color: #FFFFFF !important;
+  border-color: #E2E8F0 !important;
+  box-shadow: 0 25px 50px -12px rgba(15, 23, 42, 0.15) !important;
+  color: #0F172A !important;
+}
+
+.light .gsap-auth-card input,
+.light form input.bg-white\/5 {
+  background-color: #F8FAFC !important;
+  border-color: #CBD5E1 !important;
+  color: #0F172A !important;
+}
+
+.light .gsap-auth-card input::placeholder,
+.light form input.bg-white\/5::placeholder {
+  color: #94A3B8 !important;
+}
+
+.light .gsap-auth-card input:focus,
+.light form input.bg-white\/5:focus {
+  background-color: #FFFFFF !important;
+  border-color: #7C3AED !important;
+  box-shadow: 0 0 0 2px rgba(124, 58, 237, 0.15) !important;
+}
+
+/* Borders */
+.light .border-white\/10,
+.light .border-white\/15,
+.light .border-white\/20,
+.light .border-white\/5 {
+  border-color: #E2E8F0 !important;
+}
+
+/* Typography contrast */
+.light .text-\[\#F3F4F6\],
+.light .text-white {
+  color: #0F172A !important;
+}
+
+.light .text-gray-300,
+.light .text-gray-400 {
+  color: #475569 !important;
+}
+
+.light .text-gray-500 {
+  color: #64748B !important;
+}
+
+.light .placeholder-gray-500::placeholder {
+  color: #94A3B8 !important;
+}
+
+/* High-contrast colors for text that was neon cyan or pastel purple in dark mode */
+.light .text-cyan-400 {
+  color: #0284C7 !important;
+}
+
+.light .text-purple-400,
+.light .text-purple-300,
+.light .text-\[\#C084FC\] {
+  color: #6D28D9 !important;
+}
+
+/* Hero & Section Gradients in Light Mode (fixes invisible white/neon gradients on white background) */
+.light .from-purple-400.via-violet-200.to-cyan-300,
+.light .from-purple-400.to-violet-300,
+.light .from-white.via-purple-200.to-violet-300 {
+  --tw-gradient-from: #6D28D9 !important;
+  --tw-gradient-to: #0284C7 !important;
+  --tw-gradient-stops: var(--tw-gradient-from), #7C3AED, var(--tw-gradient-to) !important;
+}
+
+/* Ensure bg-clip-text always preserves transparent fill to reveal the gradient */
+.bg-clip-text,
+[class*="bg-clip-text"],
+.light .bg-clip-text,
+.light [class*="bg-clip-text"],
+.light span[class*="bg-clip-text"] {
+  -webkit-text-fill-color: transparent !important;
+  color: transparent !important;
+  background-clip: text !important;
+  -webkit-background-clip: text !important;
+}
+
+/* Ensure vibrant colored badges and buttons preserve white text */
+.light button.bg-\[\#8B24F0\],
+.light button.bg-\[\#8B24F0\] *,
+.light a.bg-\[\#8B24F0\],
+.light button[class*="from-"],
+.light button[class*="from-"] *,
+.light a[class*="from-"],
+.light a[class*="from-"] *,
+.light .bg-purple-600:not(.bg-clip-text),
+.light .bg-purple-700:not(.bg-clip-text),
+.light .bg-emerald-600:not(.bg-clip-text) {
+  color: #FFFFFF !important;
+}
+
+/* Technical grid in light mode */
+.light .bg-tech-grid {
+  background-image: 
+    linear-gradient(to right, rgba(15, 23, 42, 0.03) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(15, 23, 42, 0.03) 1px, transparent 1px);
+}
+
+/* NXTGEN Brand Logo in Light Mode */
+.light img[alt="NXTGEN"],
+.light .nxtgen-logo {
+  filter: invert(1) hue-rotate(180deg) brightness(0.85);
 }

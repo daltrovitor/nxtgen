@@ -4,6 +4,7 @@ import React, { useState } from "react";
 import Image from "next/image";
 import { Benefit, NXT_CATEGORIES } from "@/lib/pass-data";
 import { Plus, Edit2, Trash2, X, RefreshCw, Upload, Image as ImageIcon, Gift, Check } from "lucide-react";
+import { useConfirmToast } from "@/components/ui/confirm-toast";
 
 interface AdminBenefitsTabProps {
   benefits: Benefit[];
@@ -11,6 +12,7 @@ interface AdminBenefitsTabProps {
 }
 
 export function AdminBenefitsTab({ benefits, onRefresh }: AdminBenefitsTabProps) {
+  const { confirmDelete, showToast } = useConfirmToast();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingBenefit, setEditingBenefit] = useState<Benefit | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -157,7 +159,13 @@ export function AdminBenefitsTab({ benefits, onRefresh }: AdminBenefitsTabProps)
   };
 
   const handleDelete = async (id: string, title: string) => {
-    if (!confirm(`Tem certeza que deseja excluir o benefício "${title}"?`)) return;
+    const confirmed = await confirmDelete({
+      title: "Excluir Benefício",
+      message: `Tem certeza que deseja excluir o benefício "${title}"? Essa ação não pode ser desfeita.`,
+      confirmText: "Sim, Excluir",
+      cancelText: "Cancelar",
+    });
+    if (!confirmed) return;
 
     try {
       const res = await fetch(`/api/admin/benefits?id=${id}`, {
@@ -166,12 +174,15 @@ export function AdminBenefitsTab({ benefits, onRefresh }: AdminBenefitsTabProps)
       const data = await res.json();
 
       if (res.ok && data.success) {
+        showToast("success", `Benefício "${title}" removido com sucesso.`);
         setFeedback({ type: "success", text: "Benefício removido com sucesso." });
         await onRefresh();
       } else {
+        showToast("error", data.error || "Erro ao excluir benefício.");
         setFeedback({ type: "error", text: data.error || "Erro ao excluir benefício." });
       }
     } catch (err: any) {
+      showToast("error", err.message || "Erro de conexão.");
       setFeedback({ type: "error", text: err.message || "Erro de conexão." });
     }
   };
@@ -181,8 +192,8 @@ export function AdminBenefitsTab({ benefits, onRefresh }: AdminBenefitsTabProps)
       {/* Tab Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h2 className="text-xl font-bold font-heading text-white">Catálogo de Benefícios (Marketplace)</h2>
-          <p className="text-xs text-gray-400 mt-0.5">
+          <h2 className="text-xl font-bold font-heading text-foreground">Catálogo de Benefícios (Marketplace)</h2>
+          <p className="text-xs text-muted-foreground mt-0.5">
             Cadastre parceiros reais, faça upload de fotos para o bucket e gerencie ofertas do NXT PASS
           </p>
         </div>
@@ -190,7 +201,7 @@ export function AdminBenefitsTab({ benefits, onRefresh }: AdminBenefitsTabProps)
         <div className="flex items-center gap-2.5">
           <button
             onClick={onRefresh}
-            className="p-2.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-gray-300 transition-colors cursor-pointer"
+            className="p-2.5 rounded-xl bg-card hover:bg-muted border border-border text-foreground transition-colors cursor-pointer"
             title="Recarregar"
           >
             <RefreshCw className="w-4 h-4" />
@@ -210,27 +221,27 @@ export function AdminBenefitsTab({ benefits, onRefresh }: AdminBenefitsTabProps)
         <div
           className={`p-3.5 rounded-xl border text-xs flex items-center justify-between ${
             feedback.type === "success"
-              ? "bg-emerald-950/40 border-emerald-500/30 text-emerald-300"
-              : "bg-red-950/40 border-red-500/30 text-red-300"
+              ? "bg-emerald-50 dark:bg-emerald-950/40 border-emerald-300 dark:border-emerald-500/30 text-emerald-800 dark:text-emerald-300"
+              : "bg-red-50 dark:bg-red-950/40 border-red-300 dark:border-red-500/30 text-red-800 dark:text-red-300"
           }`}
         >
           <span>{feedback.text}</span>
-          <button onClick={() => setFeedback(null)} className="text-gray-400 hover:text-white">
+          <button onClick={() => setFeedback(null)} className="text-muted-foreground hover:text-foreground">
             <X className="w-4 h-4" />
           </button>
         </div>
       )}
 
       {/* Benefits Content: Table or Clean Empty State */}
-      <div className="bg-[#090A0F] border border-white/10 rounded-2xl overflow-hidden shadow-xl">
+      <div className="bg-card border border-border rounded-2xl overflow-hidden shadow-xl">
         {benefits.length === 0 ? (
           <div className="py-16 px-6 text-center space-y-4">
-            <div className="w-14 h-14 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center mx-auto text-[#8B24F0]">
+            <div className="w-14 h-14 rounded-2xl bg-muted border border-border flex items-center justify-center mx-auto text-[#8B24F0]">
               <Gift className="w-7 h-7" />
             </div>
             <div className="space-y-1">
-              <h3 className="text-base font-bold font-heading text-white">Nenhum benefício cadastrado</h3>
-              <p className="text-xs text-gray-400 max-w-md mx-auto">
+              <h3 className="text-base font-bold font-heading text-foreground">Nenhum benefício cadastrado</h3>
+              <p className="text-xs text-muted-foreground max-w-md mx-auto">
                 O marketplace está limpo e pronto para receber suas ofertas reais. Clique abaixo para cadastrar o primeiro benefício com foto direto no bucket.
               </p>
             </div>
@@ -246,7 +257,7 @@ export function AdminBenefitsTab({ benefits, onRefresh }: AdminBenefitsTabProps)
           <div className="overflow-x-auto">
             <table className="w-full text-left text-xs">
               <thead>
-                <tr className="border-b border-white/10 bg-white/[0.02] text-gray-400 font-mono">
+                <tr className="border-b border-border bg-muted/40 text-muted-foreground font-mono">
                   <th className="py-3 px-4">Parceiro & Título</th>
                   <th className="py-3 px-4">Vertical</th>
                   <th className="py-3 px-4">Desconto / Oferta</th>
@@ -255,15 +266,15 @@ export function AdminBenefitsTab({ benefits, onRefresh }: AdminBenefitsTabProps)
                   <th className="py-3 px-4 text-right">Ações</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-white/5 text-gray-200">
+              <tbody className="divide-y divide-border text-foreground">
                 {benefits.map((b) => {
                   const categoryObj = NXT_CATEGORIES.find((c) => c.id === b.categoryId);
                   return (
-                    <tr key={b.id} className="hover:bg-white/[0.02] transition-colors">
+                    <tr key={b.id} className="hover:bg-muted/30 transition-colors">
                       <td className="py-3.5 px-4">
                         <div className="flex items-center gap-3">
                           {b.partnerLogo ? (
-                            <div className="relative w-9 h-9 rounded-lg overflow-hidden border border-white/10 bg-black shrink-0">
+                            <div className="relative w-9 h-9 rounded-lg overflow-hidden border border-border bg-muted shrink-0">
                               <Image
                                 src={b.partnerLogo}
                                 alt={b.partnerName}
@@ -273,52 +284,52 @@ export function AdminBenefitsTab({ benefits, onRefresh }: AdminBenefitsTabProps)
                               />
                             </div>
                           ) : (
-                            <div className="w-9 h-9 rounded-lg bg-white/5 border border-white/10 flex items-center justify-center text-gray-400 font-mono text-[10px] shrink-0">
+                            <div className="w-9 h-9 rounded-lg bg-muted border border-border flex items-center justify-center text-muted-foreground font-mono text-[10px] shrink-0">
                               IMG
                             </div>
                           )}
                           <div>
-                            <div className="font-semibold text-white font-heading">{b.title}</div>
-                            <div className="text-[11px] text-[#A855F7] font-mono">{b.partnerName}</div>
+                            <div className="font-semibold text-foreground font-heading">{b.title}</div>
+                            <div className="text-[11px] text-purple-600 dark:text-[#A855F7] font-mono">{b.partnerName}</div>
                           </div>
                         </div>
                       </td>
 
                       <td className="py-3.5 px-4">
-                        <span className="inline-block px-2 py-0.5 rounded bg-white/5 border border-white/10 text-[11px] font-mono text-gray-300">
+                        <span className="inline-block px-2 py-0.5 rounded bg-muted border border-border text-[11px] font-mono text-muted-foreground">
                           {categoryObj?.verticalCode || b.categoryId.toUpperCase()}
                         </span>
                       </td>
 
                       <td className="py-3.5 px-4">
-                        <span className="inline-block px-2.5 py-0.5 rounded-full bg-[#8B24F0]/20 border border-[#8B24F0]/40 text-[#C084FC] font-mono font-bold text-[11px]">
+                        <span className="inline-block px-2.5 py-0.5 rounded-full bg-purple-100 dark:bg-[#8B24F0]/20 border border-purple-300 dark:border-[#8B24F0]/40 text-purple-700 dark:text-[#C084FC] font-mono font-bold text-[11px]">
                           {b.discountLabel}
                         </span>
                       </td>
 
                       <td className="py-3.5 px-4 font-mono">
-                        <span className="px-2 py-0.5 rounded bg-white/5 border border-white/10 text-white font-semibold">
-                          Nível {b.minNxtLevel}+
+                        <span className="px-2 py-0.5 rounded bg-muted border border-border text-foreground font-semibold">
+                          LVL {b.minNxtLevel}+
                         </span>
                       </td>
 
-                      <td className="py-3.5 px-4 font-mono text-gray-400">
-                        {b.partnerLocation || "Nacional"}
+                      <td className="py-3.5 px-4 text-muted-foreground font-mono text-[11px]">
+                        {b.partnerLocation}
                       </td>
 
                       <td className="py-3.5 px-4 text-right">
-                        <div className="flex items-center justify-end gap-1.5">
+                        <div className="inline-flex items-center gap-1.5">
                           <button
                             onClick={() => handleOpenEdit(b)}
-                            className="p-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-gray-300 hover:text-white transition-colors cursor-pointer"
-                            title="Editar benefício"
+                            className="p-1.5 rounded-lg bg-card hover:bg-muted text-foreground border border-border transition-colors cursor-pointer"
+                            title="Editar"
                           >
                             <Edit2 className="w-3.5 h-3.5" />
                           </button>
                           <button
                             onClick={() => handleDelete(b.id, b.title)}
-                            className="p-1.5 rounded-lg bg-red-500/10 hover:bg-red-500/20 text-red-400 hover:text-red-300 transition-colors cursor-pointer"
-                            title="Excluir benefício"
+                            className="p-1.5 rounded-lg bg-red-100 dark:bg-red-950/40 hover:bg-red-200 dark:hover:bg-red-900/60 text-red-700 dark:text-red-400 border border-red-300 dark:border-red-500/30 transition-colors cursor-pointer"
+                            title="Remover"
                           >
                             <Trash2 className="w-3.5 h-3.5" />
                           </button>

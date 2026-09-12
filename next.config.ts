@@ -5,24 +5,23 @@ const nextConfig: NextConfig = {
     remotePatterns: [
       {
         protocol: "https",
+        hostname: "**.supabase.co",
+      },
+      {
+        protocol: "https",
         hostname: "images.unsplash.com",
+      },
+      {
+        protocol: "https",
+        hostname: "**",
+      },
+      {
+        protocol: "http",
+        hostname: "**",
       },
     ],
   },
-  async redirects() {
-    return [
-      {
-        source: "/login",
-        destination: "/#secao-login",
-        permanent: false,
-      },
-      {
-        source: "/signup",
-        destination: "/#secao-login",
-        permanent: false,
-      },
-    ];
-  },
+
 };
 
 export default nextConfig;
