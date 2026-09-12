@@ -18,6 +18,7 @@ export function PassReferralCard({ referralInfo, onReferralSuccess }: PassReferr
   const [referrerInput, setReferrerInput] = useState("");
   const [isValidating, setIsValidating] = useState(false);
   const [feedback, setFeedback] = useState<{ type: "success" | "error"; text: string } | null>(null);
+  const [isEditingReferral, setIsEditingReferral] = useState(false);
 
   // Local state for when referral is redeemed in this session
   const [referredByState, setReferredByState] = useState<{ id: string; name: string } | null>(
@@ -30,6 +31,17 @@ export function PassReferralCard({ referralInfo, onReferralSuccess }: PassReferr
       setReferredByState(referralInfo.referredBy);
     }
   }, [referralInfo?.referredBy]);
+
+  // Read URL query parameters (?ref=2662CD6C or ?code=2662CD6C)
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const params = new URLSearchParams(window.location.search);
+      const urlCode = params.get("ref") || params.get("code") || params.get("convite");
+      if (urlCode && !referrerInput) {
+        setReferrerInput(urlCode.trim().toUpperCase());
+      }
+    }
+  }, []);
 
   const userId = referralInfo?.userId || "";
   const referralCode = referralInfo?.referralCode || (userId ? userId.slice(0, 8).toUpperCase() : "");
@@ -46,7 +58,7 @@ export function PassReferralCard({ referralInfo, onReferralSuccess }: PassReferr
   };
 
   const handleCopyLink = async () => {
-    const textToCopy = userId || referralCode;
+    const textToCopy = referralCode || userId;
     if (!textToCopy) return;
     try {
       const shareUrl =
@@ -56,6 +68,15 @@ export function PassReferralCard({ referralInfo, onReferralSuccess }: PassReferr
       await navigator.clipboard.writeText(shareUrl);
       setCopiedLink(true);
       setTimeout(() => setCopiedLink(false), 2000);
+    } catch {}
+  };
+
+  const handlePasteCode = async () => {
+    try {
+      const text = await navigator.clipboard.readText();
+      if (text) {
+        setReferrerInput(text.trim().toUpperCase());
+      }
     } catch {}
   };
 
@@ -89,6 +110,7 @@ export function PassReferralCard({ referralInfo, onReferralSuccess }: PassReferr
         text: data.message || "Convite validado com sucesso! Bônus creditado.",
       });
       setReferredByState(data.referrer);
+      setIsEditingReferral(false);
       setReferrerInput("");
 
       // Confetti celebration
@@ -157,23 +179,23 @@ export function PassReferralCard({ referralInfo, onReferralSuccess }: PassReferr
       {/* Grid: 2 Columns */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 pt-4 relative z-10">
         {/* Left Column: My Referral Code / ID */}
-        <div className="lg:col-span-7 space-y-3">
+        <div className="lg:col-span-6 space-y-3">
           <label className="text-xs font-heading font-medium text-foreground flex items-center gap-1.5">
-            <span>Seu código e ID exclusivo para convidar amigos:</span>
+            <span>Seu código e link para convidar amigos:</span>
           </label>
 
           <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
             <div className="flex-1 px-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-black/50 border border-slate-200 dark:border-white/10 flex items-center justify-between gap-2 overflow-hidden">
               <div className="flex flex-col overflow-hidden min-w-0">
                 <span className="text-[10px] uppercase font-mono font-medium text-muted-foreground">
-                  Código Curto:
+                  Seu Código:
                 </span>
                 <span className="text-sm font-mono font-extrabold text-purple-600 dark:text-purple-400 tracking-wider">
                   {referralCode || "..."}
                 </span>
               </div>
-              <span className="text-[10px] font-mono text-muted-foreground truncate max-w-[150px]" title={userId}>
-                ID: {userId ? userId.slice(0, 13) + "..." : "Carregando..."}
+              <span className="text-[10px] font-mono text-muted-foreground truncate max-w-[130px]" title={userId}>
+                ID: {userId ? userId.slice(0, 10) + "..." : "..."}
               </span>
             </div>
 
@@ -181,20 +203,20 @@ export function PassReferralCard({ referralInfo, onReferralSuccess }: PassReferr
               <button
                 onClick={handleCopyId}
                 type="button"
-                className="flex-1 sm:flex-initial inline-flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-xl bg-[#8B24F0] hover:bg-[#781dd6] text-white text-xs font-heading font-bold transition-all shadow-md shadow-[#8B24F0]/20 cursor-pointer"
+                className="flex-1 sm:flex-initial inline-flex items-center justify-center gap-1.5 px-3.5 py-2.5 rounded-xl bg-[#8B24F0] hover:bg-[#781dd6] text-white text-xs font-heading font-bold transition-all shadow-md shadow-[#8B24F0]/20 cursor-pointer"
               >
                 {copiedId ? (
                   <Check className="w-3.5 h-3.5 text-emerald-300" />
                 ) : (
                   <Copy className="w-3.5 h-3.5" />
                 )}
-                <span>{copiedId ? "Copiado!" : "Copiar Código"}</span>
+                <span>{copiedId ? "Copiado!" : "Copiar"}</span>
               </button>
 
               <button
                 onClick={handleCopyLink}
                 type="button"
-                className="flex-1 sm:flex-initial inline-flex items-center justify-center gap-1.5 px-3.5 py-2.5 rounded-xl bg-slate-100 dark:bg-white/5 hover:bg-slate-200 dark:hover:bg-white/10 border border-slate-200 dark:border-white/10 text-foreground text-xs font-heading font-medium transition-colors cursor-pointer"
+                className="flex-1 sm:flex-initial inline-flex items-center justify-center gap-1.5 px-3 py-2.5 rounded-xl bg-slate-100 dark:bg-white/5 hover:bg-slate-200 dark:hover:bg-white/10 border border-slate-200 dark:border-white/10 text-foreground text-xs font-heading font-medium transition-colors cursor-pointer"
               >
                 {copiedLink ? (
                   <Check className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-300" />
@@ -207,62 +229,103 @@ export function PassReferralCard({ referralInfo, onReferralSuccess }: PassReferr
           </div>
 
           <p className="text-[11px] text-muted-foreground leading-relaxed font-heading">
-            💡 <strong className="text-foreground">Como funciona:</strong> Envie o seu código curto (ex:{" "}
+            💡 <strong className="text-foreground">Como funciona:</strong> Compartilhe o seu código (ex:{" "}
             <code className="px-1.5 py-0.5 rounded bg-muted font-mono font-bold text-purple-600 dark:text-purple-400">
               {referralCode || "SEU_CODIGO"}
             </code>
-            ) ou seu e-mail para seu amigo. Quando ele validar o convite no dashboard dele, você ganha{" "}
+            ). Quando o amigo validar o convite no dashboard dele, você ganha{" "}
             <strong className="text-foreground">+250 XP</strong> e ele recebe{" "}
             <strong className="text-foreground">+100 XP</strong> de boas-vindas!
           </p>
         </div>
 
         {/* Right Column: Enter Friend's Code / Invite Validation */}
-        <div className="lg:col-span-5 rounded-xl bg-slate-50 dark:bg-black/40 border border-slate-200 dark:border-white/10 p-4 flex flex-col justify-between space-y-3">
-          {referredByState ? (
-            <div className="h-full flex flex-col items-center justify-center text-center p-3 space-y-2">
+        <div className="lg:col-span-6 rounded-xl bg-slate-50 dark:bg-black/40 border border-slate-200 dark:border-white/10 p-4 flex flex-col justify-between space-y-3">
+          {referredByState && !isEditingReferral ? (
+            <div className="h-full flex flex-col items-center justify-center text-center p-3 space-y-2.5">
               <div className="w-10 h-10 rounded-full bg-emerald-500/15 border border-emerald-500/30 flex items-center justify-center text-emerald-600 dark:text-emerald-400">
                 <UserCheck className="w-5 h-5" />
               </div>
               <div className="space-y-1">
-                <p className="text-xs font-heading font-bold text-foreground">
-                  Indicação Validada com Sucesso!
-                </p>
-                <p className="text-xs text-emerald-600 dark:text-emerald-400 font-heading">
-                  Você foi indicado por <strong className="text-foreground">{referredByState.name}</strong>
-                </p>
-                <p className="text-[11px] text-muted-foreground font-heading">
-                  Bônus de +100 XP de boas-vindas creditado no seu passe.
+                <div className="flex items-center justify-center gap-1.5">
+                  <p className="text-xs font-heading font-bold text-foreground">
+                    Indicação de Amigo Ativa
+                  </p>
+                  <span className="px-1.5 py-0.5 rounded text-[10px] font-mono font-bold bg-emerald-500/20 text-emerald-600 dark:text-emerald-400">
+                    +100 XP
+                  </span>
+                </div>
+                <p className="text-xs text-muted-foreground font-heading">
+                  Você foi indicado pelo amigo:{" "}
+                  <strong className="text-foreground font-bold">{referredByState.name}</strong>
                 </p>
               </div>
+
+              <button
+                type="button"
+                onClick={() => {
+                  setIsEditingReferral(true);
+                  setFeedback(null);
+                }}
+                className="mt-1 text-[11px] font-heading font-medium text-purple-600 dark:text-purple-400 hover:underline cursor-pointer"
+              >
+                Inserir outro código de amigo
+              </button>
             </div>
           ) : (
             <form onSubmit={handleSubmitReferral} className="space-y-2.5">
-              <div className="flex items-center gap-1.5 text-xs font-heading font-semibold text-foreground">
-                <Gift className="w-3.5 h-3.5 text-[#8B24F0]" />
-                <span>Foi convidado por um amigo?</span>
+              <div className="flex items-center justify-between gap-1.5">
+                <div className="flex items-center gap-1.5 text-xs font-heading font-semibold text-foreground">
+                  <Gift className="w-3.5 h-3.5 text-[#8B24F0]" />
+                  <span>Inserir Código do Amigo</span>
+                </div>
+                <span className="px-1.5 py-0.5 rounded text-[10px] font-mono font-bold bg-purple-500/10 text-purple-600 dark:text-purple-300 border border-purple-500/20">
+                  +100 XP Bônus
+                </span>
               </div>
+
               <p className="text-[11px] text-muted-foreground font-heading leading-tight">
-                Cole o código de 8 dígitos, ID ou e-mail do seu amigo para ganhar <strong>+100 XP</strong> de bônus de boas-vindas:
+                Cole o código de 8 dígitos do seu amigo (ex: <strong className="font-mono text-purple-600 dark:text-purple-400">2662CD6C</strong>) para resgatar seu bônus de boas-vindas:
               </p>
 
               <div className="space-y-2">
-                <input
-                  type="text"
-                  value={referrerInput}
-                  onChange={(e) => setReferrerInput(e.target.value)}
-                  placeholder="Código (ex: C61A0064), ID ou e-mail"
-                  className="w-full px-3 py-2 rounded-lg bg-background border border-slate-300 dark:border-white/15 text-xs text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-[#8B24F0] focus:ring-1 focus:ring-[#8B24F0] font-mono transition-colors"
-                />
+                <div className="relative flex items-center">
+                  <input
+                    type="text"
+                    value={referrerInput}
+                    onChange={(e) => setReferrerInput(e.target.value.toUpperCase())}
+                    placeholder="Digite o código do amigo (ex: 2662CD6C)"
+                    className="w-full pl-3 pr-16 py-2.5 rounded-xl bg-background border border-slate-300 dark:border-white/15 text-xs text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-[#8B24F0] focus:ring-1 focus:ring-[#8B24F0] font-mono tracking-wider transition-colors"
+                  />
+                  <button
+                    type="button"
+                    onClick={handlePasteCode}
+                    className="absolute right-2 px-2 py-1 text-[10px] font-heading font-semibold text-purple-600 dark:text-purple-300 bg-purple-500/10 hover:bg-purple-500/20 rounded-md transition-colors cursor-pointer"
+                  >
+                    Colar
+                  </button>
+                </div>
 
-                <button
-                  type="submit"
-                  disabled={isValidating || !referrerInput.trim()}
-                  className="w-full inline-flex items-center justify-center gap-2 py-2 rounded-lg bg-gradient-to-r from-purple-600 to-[#8B24F0] hover:opacity-90 disabled:opacity-50 text-white text-xs font-heading font-bold transition-all cursor-pointer shadow-md shadow-purple-500/20"
-                >
-                  <span>{isValidating ? "Validando convite..." : "Validar Convite"}</span>
-                  <ArrowRight className="w-3.5 h-3.5" />
-                </button>
+                <div className="flex gap-2">
+                  {isEditingReferral && (
+                    <button
+                      type="button"
+                      onClick={() => setIsEditingReferral(false)}
+                      className="px-3 py-2 rounded-lg bg-slate-100 dark:bg-white/5 hover:bg-slate-200 dark:hover:bg-white/10 text-foreground text-xs font-heading font-medium transition-colors cursor-pointer"
+                    >
+                      Cancelar
+                    </button>
+                  )}
+
+                  <button
+                    type="submit"
+                    disabled={isValidating || !referrerInput.trim()}
+                    className="flex-1 inline-flex items-center justify-center gap-2 py-2.5 rounded-lg bg-gradient-to-r from-purple-600 to-[#8B24F0] hover:opacity-90 disabled:opacity-50 text-white text-xs font-heading font-bold transition-all cursor-pointer shadow-md shadow-purple-500/20"
+                  >
+                    <span>{isValidating ? "Validando..." : "Validar Código do Amigo"}</span>
+                    <ArrowRight className="w-3.5 h-3.5" />
+                  </button>
+                </div>
               </div>
 
               {feedback && (
